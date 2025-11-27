@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import GameBoard from '../components/GameBoard.clean.jsx'
 import { saveScore, getUser, removeUser } from '../utils/storage.js'
+import { postScore } from '../services/api.js'
 
 const GamePage = () => {
   const [gameOverData, setGameOverData] = useState(null)
@@ -11,6 +12,12 @@ const GamePage = () => {
     // save to local leaderboard
     const user = getUser() || 'Anonymous'
     saveScore(user, data.score)
+    // also send to server leaderboard (fire-and-forget)
+    try {
+      postScore({ name: user, score: data.score, accuracy: data.accuracy, level: data.level })
+    } catch (e) {
+      console.warn('failed to post score', e)
+    }
   }
 
   const handleBack = () => {
