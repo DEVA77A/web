@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import GameBoard from '../components/GameBoard.clean.jsx'
 import { saveScore, getUser, removeUser } from '../utils/storage.js'
 import { postScore } from '../services/api.js'
@@ -21,7 +21,7 @@ const GamePage = () => {
   }
 
   const handleBack = () => {
-    window.location.href = '/dashboard'
+    navigate('/dashboard')
   }
 
   const handleLogout = () => {
@@ -33,10 +33,10 @@ const GamePage = () => {
   return (
     <div className="page-center">
       <div className="container">
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
           <h2 className="hero-title gtahero">TypeSprint — Play</h2>
           <div style={{display:'flex',gap:12}}>
-            <button className="btn" onClick={() => window.location.href = '/dashboard'}>Dashboard</button>
+            <button className="btn" onClick={() => navigate('/dashboard')}>Dashboard</button>
             <button className="btn" onClick={handleLogout}>Change Account</button>
           </div>
         </div>
