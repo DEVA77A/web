@@ -27,7 +27,7 @@ const GamePage = () => {
   const handleLogout = () => {
     // clear saved user and go to login page
     removeUser()
-    window.location.href = '/'
+    navigate('/')
   }
 
   return (
