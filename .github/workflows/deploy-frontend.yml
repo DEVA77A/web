@@ -29,6 +29,16 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Prepare production env
+        working-directory: frontend
+        run: |
+          if [ -n "${{ secrets.VITE_API_BASE_URL }}" ]; then
+            echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" > .env.production
+            echo "Wrote frontend/.env.production"
+          else
+            echo "No VITE_API_BASE_URL secret set — build will use default (likely localhost)"
+          fi
+
       - name: Build (frontend)
         working-directory: frontend
         run: npm run build
