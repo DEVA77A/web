@@ -6,7 +6,8 @@ export default defineConfig({
   // Use root-relative base for Vercel deployments. Remove the GitHub Pages base '/web/'.
   base: '/',
   server: {
-    host: true,
+    // bind to all interfaces (0.0.0.0) so localhost and network addresses work reliably
+    host: '0.0.0.0',
     port: 5173,
     proxy: {
       '/api': {
