@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 // Minimal Vite config without ESM-only plugins to avoid require/ESM loading issues in some
 // Node environments. React support still works; HMR may be less feature-rich without plugin.
 export default defineConfig({
+  // Use root-relative base for Vercel deployments. Remove the GitHub Pages base '/web/'.
+  base: '/',
   server: {
     host: true,
     port: 5173,
