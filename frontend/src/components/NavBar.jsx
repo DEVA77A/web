@@ -6,9 +6,9 @@ const NavBar = () => {
   return (
     <header className="w-full py-3 px-4 flex items-center justify-between glass-card" style={{position:'sticky',top:12,zIndex:50,margin:'0 1rem'}}>
       <div className="flex items-center gap-4">
-        <div className="logo-badge">FF</div>
+        <div className="logo-badge">TS</div>
         <div>
-          <div className="gtahero" style={{fontSize:18}}>FingerFury</div>
+          <div className="gtahero" style={{fontSize:18}}>Type Sprint</div>
           <div className="hero-sub" style={{fontSize:12}}>Type Sprint</div>
         </div>
       </div>

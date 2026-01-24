@@ -10,7 +10,7 @@ const randX = () => Math.max(16, Math.floor(Math.random() * (Math.max((typeof wi
 const makeId = () => {
   try {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
-  } catch (e) {}
+  } catch (e) { }
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
@@ -36,7 +36,7 @@ const getPrefixMatchInfo = (typedRaw, targetRaw) => {
   }
 }
 
-const GameBoard = ({ onGameOver = () => {} }) => {
+const GameBoard = ({ onGameOver = () => { } }) => {
   const [level, setLevel] = useState(1)
   const [score, setScore] = useState(0)
   const [misses, setMisses] = useState(0)
@@ -96,9 +96,14 @@ const GameBoard = ({ onGameOver = () => {} }) => {
     }
   }, [])
 
+  const hasEndedRef = useRef(false)
+
   useEffect(() => {
-    if (timer <= 0 || misses >= 3) {
+    if ((timer <= 0 || misses >= 3) && !hasEndedRef.current) {
+      hasEndedRef.current = true
       onGameOver({ score, accuracy: Math.round((correctTypedRef.current / (totalTypedRef.current || 1)) * 100), level })
+      // stop spawning
+      if (spawnRef.current) clearInterval(spawnRef.current)
     }
   }, [timer, misses, onGameOver, score, level])
 

@@ -39,12 +39,30 @@ export async function getWords({ count = 3, level = 1 } = {}) {
   }
 }
 
-export async function postScore({ name = 'Anonymous', score = 0, accuracy = 0, level = 1 } = {}) {
+export async function loginUser(name, password) {
+  try {
+    const res = await fetch(buildUrl('/api/users/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, password })
+    })
+    if (!res.ok) {
+      const errData = await res.json()
+      throw new Error(errData.error || 'Login failed')
+    }
+    return await res.json()
+  } catch (err) {
+    console.warn('loginUser failed', err)
+    throw err // Throw so UI can catch and show error
+  }
+}
+
+export async function postScore({ name = 'Anonymous', score = 0, accuracy = 0, level = 1, userId } = {}) {
   try {
     const res = await fetch(buildUrl('/api/scores'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, score, accuracy, level })
+      body: JSON.stringify({ name, score, accuracy, level, userId })
     })
     if (!res.ok) throw new Error('Failed to save')
     return await res.json()

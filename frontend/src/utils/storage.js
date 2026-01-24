@@ -4,22 +4,27 @@ const KEY_LEADER = 'typesprint_leaderboard'
 
 export function getUser() {
   try {
-    return localStorage.getItem(KEY_USER)
+    const v = localStorage.getItem(KEY_USER)
+    return v ? JSON.parse(v) : null
   } catch (e) { return null }
 }
 
-export function setUser(name) {
-  try { localStorage.setItem(KEY_USER, name) } catch (e) {}
+export function setUser(userObj) {
+  try {
+    localStorage.setItem(KEY_USER, typeof userObj === 'string' ? JSON.stringify({ name: userObj }) : JSON.stringify(userObj))
+  } catch (e) { }
 }
 
 export function removeUser() {
-  try { localStorage.removeItem(KEY_USER) } catch (e) {}
+  try { localStorage.removeItem(KEY_USER) } catch (e) { }
 }
 
 export function getLeaderboard() {
   try {
     const raw = localStorage.getItem(KEY_LEADER)
-    return raw ? JSON.parse(raw) : []
+    const parsed = raw ? JSON.parse(raw) : []
+    console.debug('[storage] getLeaderboard ->', parsed)
+    return parsed
   } catch (e) { return [] }
 }
 
@@ -34,6 +39,7 @@ export function saveScore(username, score) {
     }
     board.sort((a, b) => b.score - a.score)
     localStorage.setItem(KEY_LEADER, JSON.stringify(board))
+    console.debug('[storage] saveScore saved', { username, score, board })
     return true
   } catch (e) { return false }
 }

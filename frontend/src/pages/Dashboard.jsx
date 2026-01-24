@@ -12,11 +12,12 @@ const Dashboard = () => {
       <div className="container grid md:grid-cols-2 gap-6">
         <div>
           <div className="glass-card">
-            <h2 className="hero-title gtahero">Welcome, {user}</h2>
+            <h2 className="hero-title gtahero">Welcome, {user?.name || user}</h2>
             <p className="muted">Type words before they hit the ground. Score points, survive lives, climb the leaderboard.</p>
-            <div className="mt-6">
+            <div className="mt-6 flex gap-3">
               <button className="btn primary large" onClick={() => navigate('/game')}>Start Game</button>
-              <button className="btn" onClick={() => navigate('/leaderboard')} style={{ marginLeft: 12 }}>Leaderboard</button>
+              <button className="btn" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
+              <button className="btn" onClick={() => { localStorage.removeItem('typesprint_user'); navigate('/'); }}>Logout</button>
             </div>
           </div>
         </div>
@@ -29,7 +30,7 @@ const Dashboard = () => {
             ) : (
               <ol className="leader-list">
                 {top.map((p, i) => (
-                  <li key={p.username || i} className="leader-row"><div className="leader-rank">{i+1}</div><div className="leader-name">{p.username}</div><div className="leader-score">{p.score}</div></li>
+                  <li key={p.username || i} className="leader-row"><div className="leader-rank">{i + 1}</div><div className="leader-name">{p.username}</div><div className="leader-score">{p.score}</div></li>
                 ))}
               </ol>
             )}

@@ -1,24 +1,35 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import GameBoard from '../components/GameBoard.clean.jsx'
 import { saveScore, getUser, removeUser } from '../utils/storage.js'
 import { postScore } from '../services/api.js'
 
 const GamePage = () => {
+  const navigate = useNavigate()
   const [gameOverData, setGameOverData] = useState(null)
 
-  const handleGameOver = (data) => {
+  const handleGameOver = useCallback((data) => {
+    if (gameOverData) return
     setGameOverData(data)
     // save to local leaderboard
-    const user = getUser() || 'Anonymous'
-    saveScore(user, data.score)
+    const user = getUser()
+    const username = user?.name || 'Anonymous'
+    const userId = user?.id || null
+
+    saveScore(username, data.score)
     // also send to server leaderboard (fire-and-forget)
     try {
-      postScore({ name: user, score: data.score, accuracy: data.accuracy, level: data.level })
+      postScore({
+        name: username,
+        score: data.score,
+        accuracy: data.accuracy,
+        level: data.level,
+        userId: userId
+      })
     } catch (e) {
       console.warn('failed to post score', e)
     }
-  }
+  }, [gameOverData])
 
   const handleBack = () => {
     navigate('/dashboard')
@@ -31,11 +42,11 @@ const GamePage = () => {
   }
 
   return (
-    <div className="page-center">
-      <div className="container">
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+    <div className="min-h-screen w-full flex justify-center items-start px-4 pt-24 pb-8">
+      <div className="container" style={{ margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <h2 className="hero-title gtahero">TypeSprint — Play</h2>
-          <div style={{display:'flex',gap:12}}>
+          <div style={{ display: 'flex', gap: 12 }}>
             <button className="btn" onClick={() => navigate('/dashboard')}>Dashboard</button>
             <button className="btn" onClick={handleLogout}>Change Account</button>
           </div>

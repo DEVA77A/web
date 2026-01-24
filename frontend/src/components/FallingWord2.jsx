@@ -10,7 +10,16 @@ const FallingWord = ({ id, text, duration = 4, x = 0, onComplete = () => {} }) =
     const vw = typeof window !== 'undefined' ? window.innerWidth : 800
     // targetY should be the parent container height so word falls to bottom of game area
     const parent = node.parentElement
-    const targetY = parent ? parent.clientHeight + 40 : (typeof window !== 'undefined' ? window.innerHeight + 140 : 900)
+    let bottomReserve = 0
+    try {
+      const bottomBar = parent ? parent.querySelector('.game-bottom-bar') : null
+      bottomReserve = bottomBar ? bottomBar.offsetHeight : 0
+    } catch (e) {
+      bottomReserve = 0
+    }
+    const targetY = parent
+      ? Math.max(140, parent.clientHeight - bottomReserve - 18)
+      : (typeof window !== 'undefined' ? window.innerHeight + 140 : 900)
 
     // initialize position and slight random rotation
     const rot = (Math.random() - 0.5) * 12

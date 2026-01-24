@@ -26,7 +26,7 @@ const LandingPage = () => {
     <div className="app-shell">
       <div className="container grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         <div className="text-left">
-          <h1 ref={titleRef} className="hero-title gtahero">FingerFury</h1>
+          <h1 ref={titleRef} className="hero-title gtahero">Type Sprint</h1>
           <p ref={subtitleRef} className="mt-4 text-lg text-muted max-w-xl">A fast-paced, neon-styled typing sprint. Type falling words before they hit the ground — rack up combos, level up, and climb the leaderboard.</p>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
