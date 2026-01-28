@@ -42,36 +42,26 @@ const GamePage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex justify-center items-start px-4 pt-24 pb-8">
+    <div className="min-h-screen w-full flex justify-center items-start px-4 pt-12 pb-8">
       <div className="container" style={{ margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/logo.png" alt="Type Sprint Logo" style={{ width: 48, height: 'auto' }} />
-            <h2 className="hero-title gtahero" style={{ margin: 0 }}>TypeSprint — Play</h2>
-          </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button className="btn" onClick={() => navigate('/dashboard')}>Dashboard</button>
-            <button className="btn" onClick={handleLogout}>Change Account</button>
-          </div>
-        </div>
         <div className="glass-card">
           <GameBoard onGameOver={handleGameOver} onExit={() => navigate('/dashboard')} />
         </div>
-      </div>
-      {gameOverData && (
-        <div className="overlay">
-          <div className="card modal">
-            <h3>Game Over</h3>
-            <p>Score: <strong>{gameOverData.score}</strong></p>
-            <p>Accuracy: <strong>{gameOverData.accuracy}%</strong></p>
-            <div className="mt-4">
-              <button className="btn primary" onClick={() => window.location.reload()}>Play Again</button>
-              <button className="btn" onClick={handleBack} style={{ marginLeft: 12 }}>Back to Dashboard</button>
-              <Link to="/leaderboard" className="btn" style={{ marginLeft: 12 }}>Leaderboard</Link>
+        {gameOverData && (
+          <div className="overlay">
+            <div className="card modal">
+              <h3>Game Over</h3>
+              <p>Score: <strong>{gameOverData.score}</strong></p>
+              <p>Accuracy: <strong>{gameOverData.accuracy}%</strong></p>
+              <div className="mt-4">
+                <button className="btn primary" onClick={() => window.location.reload()}>Play Again</button>
+                <button className="btn" onClick={handleBack} style={{ marginLeft: 12 }}>Back to Dashboard</button>
+                <Link to="/leaderboard" className="btn" style={{ marginLeft: 12 }}>Leaderboard</Link>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

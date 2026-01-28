@@ -29,11 +29,7 @@ const Dashboard = () => {
   }, [])
 
   return (
-    <div className="page-center" style={{ paddingTop: '80px' }}>
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16, zIndex: 100, background: 'rgba(7, 16, 36, 0.8)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <img src="/logo.png" alt="Type Sprint Logo" style={{ width: 40, height: 'auto' }} />
-        <h1 className="hero-title gtahero" style={{ fontSize: '1.5rem', margin: 0 }}>Type Sprint</h1>
-      </header>
+    <div className="page-center" style={{ paddingTop: '20px' }}>
       <div className="container grid md:grid-cols-2 gap-6">
         <div>
           <div className="glass-card">
