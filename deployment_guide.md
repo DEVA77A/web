@@ -1,8 +1,21 @@
 # Render Deployment Guide - Type Sprint
 
-Follow these steps to deploy your game to Render.
+There are two ways to deploy. **Option A** is the fastest as it sets up both the backend and frontend at once.
 
-## 1. Deploy the Backend (Web Service)
+## Option A: One-Click Deployment (Recommended)
+
+Render will use the `render.yaml` file I added to your repository to set up everything automatically.
+
+1.  Log in to [Render](https://dashboard.render.com).
+2.  Click **New +** and select **Blueprint**.
+3.  Connect your GitHub repository.
+4.  Render will show both `typesprint-backend` and `typesprint-frontend`.
+5.  Click **Apply**.
+6.  **Important**: Go to the `typesprint-backend` service settings and add your `MONGO_URI` environment variable.
+
+---
+
+## Option B: Manual Deployment (Step-by-Step)
 
 Create a new **Web Service** on Render and connect your GitHub repository.
 

@@ -1,0 +1,29 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: typesprint-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # You will need to set this in the Render Dashboard
+      - key: PORT
+        value: 5000
+
+  # Frontend Static Site
+  - type: static
+    name: typesprint-frontend
+    runtime: web
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: typesprint-backend
+          property: host
