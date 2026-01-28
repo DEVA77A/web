@@ -1,14 +1,39 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUser, getLeaderboard } from '../utils/storage.js'
+import { getTopScores } from '../services/api.js'
 
 const Dashboard = () => {
   const user = getUser() || 'Player'
   const navigate = useNavigate()
-  const top = getLeaderboard().slice(0, 5)
+  const [top, setTop] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    getTopScores(3)
+      .then((list) => {
+        if (Array.isArray(list) && list.length > 0) {
+          setTop(list.slice(0, 3))
+        } else {
+          // Fallback to local
+          const local = getLeaderboard().slice(0, 3).map(s => ({ _id: s.username, username: s.username, score: s.score }))
+          setTop(local)
+        }
+      })
+      .catch(() => {
+        const local = getLeaderboard().slice(0, 3).map(s => ({ _id: s.username, username: s.username, score: s.score }))
+        setTop(local)
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
-    <div className="page-center">
+    <div className="page-center" style={{ paddingTop: '80px' }}>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16, zIndex: 100, background: 'rgba(7, 16, 36, 0.8)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <img src="/logo.png" alt="Type Sprint Logo" style={{ width: 40, height: 'auto' }} />
+        <h1 className="hero-title gtahero" style={{ fontSize: '1.5rem', margin: 0 }}>Type Sprint</h1>
+      </header>
       <div className="container grid md:grid-cols-2 gap-6">
         <div>
           <div className="glass-card">
@@ -25,12 +50,18 @@ const Dashboard = () => {
         <aside>
           <div className="glass-card">
             <h3 className="mb-3">Top Players</h3>
-            {top.length === 0 ? (
+            {loading ? (
+              <div className="muted">Loading top scores...</div>
+            ) : top.length === 0 ? (
               <div className="muted">No scores yet — play to be first!</div>
             ) : (
               <ol className="leader-list">
                 {top.map((p, i) => (
-                  <li key={p.username || i} className="leader-row"><div className="leader-rank">{i + 1}</div><div className="leader-name">{p.username}</div><div className="leader-score">{p.score}</div></li>
+                  <li key={p._id || i} className="leader-row">
+                    <div className="leader-rank">{i + 1}</div>
+                    <div className="leader-name">{p.username || p.name || 'Anonymous'}</div>
+                    <div className="leader-score">{p.score}</div>
+                  </li>
                 ))}
               </ol>
             )}

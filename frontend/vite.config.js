@@ -8,7 +8,8 @@ export default defineConfig({
   server: {
     // bind to all interfaces (0.0.0.0) so localhost and network addresses work reliably
     host: '0.0.0.0',
-    port: 5173,
+    port: 3000,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

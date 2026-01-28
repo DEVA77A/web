@@ -45,14 +45,17 @@ const GamePage = () => {
     <div className="min-h-screen w-full flex justify-center items-start px-4 pt-24 pb-8">
       <div className="container" style={{ margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <h2 className="hero-title gtahero">TypeSprint — Play</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img src="/logo.png" alt="Type Sprint Logo" style={{ width: 48, height: 'auto' }} />
+            <h2 className="hero-title gtahero" style={{ margin: 0 }}>TypeSprint — Play</h2>
+          </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <button className="btn" onClick={() => navigate('/dashboard')}>Dashboard</button>
             <button className="btn" onClick={handleLogout}>Change Account</button>
           </div>
         </div>
         <div className="glass-card">
-          <GameBoard onGameOver={handleGameOver} />
+          <GameBoard onGameOver={handleGameOver} onExit={() => navigate('/dashboard')} />
         </div>
       </div>
       {gameOverData && (

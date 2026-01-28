@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 
-const FallingWord = ({ id, text, duration = 4, x = 0, onComplete = () => {} }) => {
+const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed = false, isFrozen = false, isSlashed = false, onComplete = () => { } }) => {
   const ref = useRef(null)
+  const tlRef = useRef(null)
 
   useEffect(() => {
     if (!ref.current) return
@@ -52,8 +53,9 @@ const FallingWord = ({ id, text, duration = 4, x = 0, onComplete = () => {} }) =
       rotation: rot + (Math.random() - 0.5) * 18,
       opacity: 1,
       // use provided duration but prefer a slower minimum for readability
-      duration: Math.max(2.6, duration),
+      duration: Math.max(0.8, duration),
       ease: 'power1.out',
+      paused: paused || isFrozen || isSlashed,
       onUpdate: function () {
         const p = tl.progress()
         // tiny blur and small scale so motion remains readable
@@ -68,12 +70,28 @@ const FallingWord = ({ id, text, duration = 4, x = 0, onComplete = () => {} }) =
       }
     })
 
+    tlRef.current = tl
+
+    // Apply initial timeScale based on power-ups
+    if (isSlowed) tl.timeScale(0.3)
+    if (isFrozen) tl.pause()
+
     return () => {
       try {
         tl.kill()
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [id, duration, x, onComplete])
+
+  useEffect(() => {
+    if (tlRef.current) {
+      if (paused || isFrozen || isSlashed) tlRef.current.pause()
+      else tlRef.current.play()
+
+      if (isSlowed) gsap.to(tlRef.current, { timeScale: 0.3, duration: 0.5 })
+      else if (!isFrozen) gsap.to(tlRef.current, { timeScale: 1, duration: 0.5 })
+    }
+  }, [paused, isSlowed, isFrozen])
 
   const inlineStyle = {
     left: x,
@@ -87,12 +105,26 @@ const FallingWord = ({ id, text, duration = 4, x = 0, onComplete = () => {} }) =
     fontWeight: 800,
     borderRadius: '8px',
     zIndex: 9999,
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    transition: 'border 0.3s, box-shadow 0.3s, filter 0.3s'
   }
 
+  const classNames = [
+    'falling-word',
+    isSlowed ? 'slow-active' : '',
+    isFrozen ? 'frozen-word' : '',
+    isSlashed ? 'slashed-word vanishing' : ''
+  ].join(' ')
+
   return (
-    <div ref={ref} className="falling-word" style={inlineStyle} aria-hidden>
+    <div ref={ref} className={classNames} style={inlineStyle} aria-hidden>
+      {isSlowed && <div className="slow-beam" />}
       {text}
+      {isSlashed && (
+        <div className="flame-slash-container">
+          <div className="flame-slash slash-animation" />
+        </div>
+      )}
     </div>
   )
 }

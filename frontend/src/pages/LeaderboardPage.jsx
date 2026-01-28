@@ -37,9 +37,12 @@ const LeaderboardPage = () => {
 			<div className="container">
 				<div className="glass-card">
 					<div className="leaderboard-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-						<div>
-							<h2 className="hero-title gtahero">Leaderboard</h2>
-							<div className="hero-sub">Top sprint champions — accuracy & speed</div>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+							<img src="/logo.png" alt="Type Sprint Logo" style={{ width: 56, height: 'auto' }} />
+							<div>
+								<h2 className="hero-title gtahero" style={{ margin: 0 }}>Leaderboard</h2>
+								<div className="hero-sub">Top sprint champions — accuracy & speed</div>
+							</div>
 						</div>
 						<div style={{ display: 'flex', gap: 12 }}>
 							<button className="btn" onClick={loadScores}>Refresh</button>
