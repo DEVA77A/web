@@ -9,6 +9,11 @@ app.use(express.json())
 
 const PORT = process.env.PORT || 5000
 
+// Health check route
+app.get('/', (req, res) => {
+	res.send('Type Sprint API is running!')
+})
+
 // Simple fallback word list for demo mode
 const FALLBACK_WORDS = [
 	'neon', 'cyber', 'react', 'sprint', 'speed', 'keyboard', 'async', 'node', 'mongo', 'atlas', 'tailwind', 'framer',
