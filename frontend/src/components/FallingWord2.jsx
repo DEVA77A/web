@@ -55,7 +55,7 @@ const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed =
       // use provided duration but prefer a slower minimum for readability
       duration: Math.max(0.8, duration),
       ease: 'power1.out',
-      paused: paused || isFrozen || isSlashed,
+      paused: paused || isSlashed,  // Only pause for game pause or slash, NOT for slow/freeze
       onUpdate: function () {
         const p = tl.progress()
         // tiny blur and small scale so motion remains readable
@@ -73,8 +73,8 @@ const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed =
     tlRef.current = tl
 
     // Apply initial timeScale based on power-ups
-    if (isSlowed) tl.timeScale(0.3)
-    if (isFrozen) tl.pause()
+    if (isSlowed) tl.timeScale(0.2)  // Very slow (20% speed)
+    if (isFrozen) tl.timeScale(0)    // Completely frozen (0% speed)
 
     return () => {
       try {
@@ -85,13 +85,26 @@ const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed =
 
   useEffect(() => {
     if (tlRef.current) {
-      if (paused || isFrozen || isSlashed) tlRef.current.pause()
-      else tlRef.current.play()
+      // Handle pause/play based on game state or slash
+      if (paused || isSlashed) {
+        tlRef.current.pause()
+      } else {
+        tlRef.current.play()
+      }
 
-      if (isSlowed) gsap.to(tlRef.current, { timeScale: 0.3, duration: 0.5 })
-      else if (!isFrozen) gsap.to(tlRef.current, { timeScale: 1, duration: 0.5 })
+      // Handle power-up effects via timeScale
+      if (isFrozen) {
+        // Freeze: set timeScale to 0 (completely stopped)
+        gsap.to(tlRef.current, { timeScale: 0, duration: 0.3 })
+      } else if (isSlowed) {
+        // Slow-mo: set timeScale to 0.2 (very slow but still moving)
+        gsap.to(tlRef.current, { timeScale: 0.2, duration: 0.5 })
+      } else {
+        // Normal speed: timeScale 1
+        gsap.to(tlRef.current, { timeScale: 1, duration: 0.5 })
+      }
     }
-  }, [paused, isSlowed, isFrozen])
+  }, [paused, isSlowed, isFrozen, isSlashed])
 
   const inlineStyle = {
     left: x,
