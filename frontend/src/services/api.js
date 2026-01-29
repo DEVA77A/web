@@ -1,4 +1,9 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+let API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+
+// If API_BASE is set but doesn't start with http, assume it's a hostname and add https://
+if (API_BASE && !API_BASE.startsWith('http')) {
+  API_BASE = `https://${API_BASE}`
+}
 
 function buildUrl(path) {
   if (!API_BASE) return path
