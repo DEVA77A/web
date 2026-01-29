@@ -314,6 +314,12 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
     setInput('')
   }
 
+  const handleMobileSkillClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    activatePower()
+  }
+
   useEffect(() => {
     if (level > 1) { playLevel(); showMessage(`Level ${level} — Speed Up!`, 1200) }
   }, [level, playLevel, showMessage])
@@ -342,11 +348,24 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
       {isPaused && <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md z-[9999]"><h2 className="text-6xl font-bold neon-blue mb-8 tracking-widest">PAUSED</h2><button onClick={() => setIsPaused(false)} className="btn primary px-12 py-5 text-2xl gta-font border-2 border-blue-400 hover:bg-blue-500/20 transition-all mb-4" style={{ textTransform: 'uppercase', width: '320px' }}>Resume Mission</button><button onClick={onExit} className="btn px-12 py-5 text-xl gta-font border border-white/20 hover:bg-white/10 transition-all" style={{ textTransform: 'uppercase', width: '320px' }}>Return to Home</button></div>}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-card border-t game-bottom-bar" style={{ backdropFilter: 'blur(4px)' }}>
         <form onSubmit={handleSubmit} className="flex gap-2">
-          <input ref={inputRef} value={input} onChange={handleChange} onKeyDown={handleKeyDown} placeholder={currentPower ? `READY: ${currentPower.icon} - Space to Use!` : "Type and hit Enter"} className="flex-1 px-4 py-3 rounded bg-transparent border border-white/10 focus:border-blue-500 transition-colors" autoFocus autoComplete="off" spellCheck={false} autoCapitalize="none" aria-label="Type the falling word" disabled={isPaused || isIntermission} />
-          {currentPower && <div className="px-4 py-3 rounded border-2 flex items-center justify-center power-pill power-active-pulse" style={{ borderColor: currentPower.color, color: currentPower.color, minWidth: '60px' }} title={`Power: ${currentPower.label}`}><span className="text-2xl">{currentPower.icon}</span></div>}
+          <input ref={inputRef} value={input} onChange={handleChange} onKeyDown={handleKeyDown} placeholder={currentPower ? `READY: ${currentPower.icon} - Tap to Use!` : "Type and hit Enter"} className="flex-1 px-4 py-3 rounded bg-transparent border border-white/10 focus:border-blue-500 transition-colors" autoFocus autoComplete="off" spellCheck={false} autoCapitalize="none" aria-label="Type the falling word" disabled={isPaused || isIntermission} />
+          {currentPower && (
+            <button 
+              type="button"
+              onClick={handleMobileSkillClick}
+              onTouchEnd={handleMobileSkillClick}
+              className="px-4 py-3 rounded border-2 flex items-center justify-center power-pill power-active-pulse mobile-skill-button cursor-pointer active:scale-95 transition-transform"
+              style={{ borderColor: currentPower.color, color: currentPower.color, minWidth: '60px', display: 'none' }}
+              title={`Power: ${currentPower.label}`}
+              aria-label={`Activate ${currentPower.label}`}
+            >
+              <span className="text-2xl">{currentPower.icon}</span>
+            </button>
+          )}
+          {currentPower && <div className="hidden md:flex px-4 py-3 rounded border-2 items-center justify-center power-pill power-active-pulse" style={{ borderColor: currentPower.color, color: currentPower.color, minWidth: '60px' }} title={`Power: ${currentPower.label}`}><span className="text-2xl">{currentPower.icon}</span></div>}
           <button type="submit" disabled={!input.trim() || isPaused || isIntermission} className="px-6 py-3 rounded border border-white/10 bg-black/20 hover:bg-white/10 disabled:opacity-30 transition-all text-white font-bold" aria-label="Submit typed word">ENTER</button>
         </form>
-        <div className="mt-2 text-xs text-slate-400 flex justify-between"><span>Tip: Press Esc to pause.</span>{currentPower && <span className="neon-blue font-bold">SPACE BAR TO ACTIVATE SKILL!</span>}</div>
+        <div className="mt-2 text-xs text-slate-400 flex justify-between"><span>Tip: Press Esc to pause.</span>{currentPower && <span className="neon-blue font-bold hidden md:inline">SPACE BAR TO ACTIVATE SKILL!</span>}{currentPower && <span className="neon-blue font-bold md:hidden">TAP ICON TO ACTIVATE!</span>}</div>
       </div>
       <ScoreBoard score={score} accuracy={Math.round((correctTypedRef.current / (totalTypedRef.current || 1)) * 100)} level={level} round={round} timer={timer} misses={misses} />
     </div>

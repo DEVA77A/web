@@ -42,9 +42,9 @@ const GamePage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex justify-center items-start px-4 pt-12 pb-8">
-      <div className="container" style={{ margin: '0 auto' }}>
-        <div className="glass-card">
+    <div className="min-h-screen w-full flex justify-center items-start game-page-wrapper">
+      <div className="container game-container">
+        <div className="glass-card game-card-wrapper">
           <GameBoard onGameOver={handleGameOver} onExit={() => navigate('/dashboard')} />
         </div>
         {gameOverData && (

@@ -142,7 +142,76 @@ body {
 /* responsive gameboard */
 .game-area {
   width: 100%;
-  max-width: 1100px
+  max-width: 1100px;
+  touch-action: manipulation;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  
+  .game-page-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .game-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  
+  .game-card-wrapper {
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .game-area {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 100dvh !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0 !important;
+  }
+  
+  .container {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  
+  .game-bottom-bar {
+    padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+  }
+  
+  .mobile-skill-button {
+    display: flex !important;
+  }
+  
+  .mobile-skill-button-hidden {
+    display: none !important;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+  .game-page-wrapper {
+    padding: 3rem 1rem;
+  }
+  
+  .game-container {
+    margin: 0 auto;
+  }
 }
 
 /* Hero & CTA */
