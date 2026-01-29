@@ -53,10 +53,10 @@ const GamePage = () => {
               <h3>Game Over</h3>
               <p>Score: <strong>{gameOverData.score}</strong></p>
               <p>Accuracy: <strong>{gameOverData.accuracy}%</strong></p>
-              <div className="mt-4">
+              <div className="mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <button className="btn primary" onClick={() => window.location.reload()}>Play Again</button>
-                <button className="btn" onClick={handleBack} style={{ marginLeft: 12 }}>Back to Dashboard</button>
-                <Link to="/leaderboard" className="btn" style={{ marginLeft: 12 }}>Leaderboard</Link>
+                <button className="btn" onClick={handleBack}>Back to Dashboard</button>
+                <Link to="/leaderboard" className="btn">Leaderboard</Link>
               </div>
             </div>
           </div>
