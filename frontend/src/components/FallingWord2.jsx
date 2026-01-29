@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 
-const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed = false, isFrozen = false, isSlashed = false, onComplete = () => { } }) => {
+const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isFrozen = false, isSlashed = false, onComplete = () => { } }) => {
   const ref = useRef(null)
   const tlRef = useRef(null)
 
@@ -73,8 +73,7 @@ const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed =
     tlRef.current = tl
 
     // Apply initial timeScale based on power-ups
-    if (isSlowed) tl.timeScale(0.2)  // Very slow (20% speed)
-    if (isFrozen) tl.timeScale(0)    // Completely frozen (0% speed)
+    if (isFrozen) tl.timeScale(0.15)  // Ultra slow (15% speed) - animated freeze effect
 
     return () => {
       try {
@@ -94,17 +93,14 @@ const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed =
 
       // Handle power-up effects via timeScale
       if (isFrozen) {
-        // Freeze: set timeScale to 0 (completely stopped)
-        gsap.to(tlRef.current, { timeScale: 0, duration: 0.3 })
-      } else if (isSlowed) {
-        // Slow-mo: set timeScale to 0.2 (very slow but still moving)
-        gsap.to(tlRef.current, { timeScale: 0.2, duration: 0.5 })
+        // Freeze: set timeScale to 0.15 (ultra slow but still moving with smooth animation)
+        gsap.to(tlRef.current, { timeScale: 0.15, duration: 0.5, ease: 'power2.inOut' })
       } else {
-        // Normal speed: timeScale 1
-        gsap.to(tlRef.current, { timeScale: 1, duration: 0.5 })
+        // Normal speed: timeScale 1 with smooth transition back
+        gsap.to(tlRef.current, { timeScale: 1, duration: 0.6, ease: 'power2.out' })
       }
     }
-  }, [paused, isSlowed, isFrozen, isSlashed])
+  }, [paused, isFrozen, isSlashed])
 
   const inlineStyle = {
     left: x,
@@ -124,14 +120,12 @@ const FallingWord = ({ id, text, duration = 4, x = 0, paused = false, isSlowed =
 
   const classNames = [
     'falling-word',
-    isSlowed ? 'slow-active' : '',
     isFrozen ? 'frozen-word' : '',
     isSlashed ? 'slashed-word vanishing' : ''
   ].join(' ')
 
   return (
     <div ref={ref} className={classNames} style={inlineStyle} aria-hidden>
-      {isSlowed && <div className="slow-beam" />}
       {text}
       {isSlashed && (
         <div className="flame-slash-container">

@@ -49,12 +49,11 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
   const [timer, setTimer] = useState(60)
   const [active, setActive] = useState([]) // {id, text, duration, x, isSlashed}
   const [currentPower, setCurrentPower] = useState(null) // {type, icon, label, color}
-  const [powerActive, setPowerActive] = useState({ slow: false, freeze: false })
+  const [powerActive, setPowerActive] = useState({ freeze: false })
   const [slashedWordId, setSlashedWordId] = useState(null)
   const powerUsedRef = useRef({ 20: false, 40: false })
 
   const POWER_TYPES = [
-    { type: 'slow', icon: '⚡', label: 'CHRONO SLOW', color: '#fbbf24' },
     { type: 'freeze', icon: '❄️', label: 'FROST LOCK', color: '#0ea5e9' },
     { type: 'skip', icon: '🔥', label: 'DRAGON SLASH', color: '#ef4444' },
     { type: 'life', icon: '💖', label: 'VITAL SURGE', color: '#ec4899' }
@@ -69,6 +68,7 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
   const spawnRef = useRef(null)
   const [message, setMessage] = useState('')
   const messageTimeoutRef = useRef(null)
+  const [skillActivation, setSkillActivation] = useState(null) // {icon, label, color}
   const { playHit, playMiss, playLevel } = useSounds()
 
   const roundSpeedFactor = useMemo(() => {
@@ -157,14 +157,15 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
 
   const activatePower = useCallback(() => {
     if (!currentPower || isPaused || isIntermission) return
-    const { type, label } = currentPower
-    showMessage(`${label} !!!`, 2000)
+    const { type, label, icon, color } = currentPower
+    
+    // Show centered skill activation animation
+    setSkillActivation({ icon, label, color })
+    setTimeout(() => setSkillActivation(null), 1200)
+    
     setCurrentPower(null)
 
-    if (type === 'slow') {
-      setPowerActive(p => ({ ...p, slow: true }))
-      setTimeout(() => setPowerActive(p => ({ ...p, slow: false })), 5000)
-    } else if (type === 'freeze') {
+    if (type === 'freeze') {
       setPowerActive(p => ({ ...p, freeze: true }))
       setTimeout(() => setPowerActive(p => ({ ...p, freeze: false })), 3000)
     } else if (type === 'skip') {
@@ -327,8 +328,16 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
       <button type="button" onClick={() => setIsPaused(!isPaused)} className="absolute top-4 right-4 z-[9998] p-2 rounded-full bg-black/40 border border-white/20 hover:bg-black/60 transition-all neon-blue-hover" aria-label={isPaused ? "Resume game" : "Pause game"}>
         {isPaused ? <svg className="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg> : <svg className="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M6 14h4V5H6v14zm8-14v14h4V5h-4z" /></svg>}
       </button>
-      {active.map((w) => <FallingWord key={w.id} {...w} paused={isPaused} isSlowed={powerActive.slow} isFrozen={powerActive.freeze} isSlashed={slashedWordId === w.id} onComplete={handleComplete} />)}
+      {active.map((w) => <FallingWord key={w.id} {...w} paused={isPaused} isFrozen={powerActive.freeze} isSlashed={slashedWordId === w.id} onComplete={handleComplete} />)}
       {message && <div className="absolute left-1/2 -translate-x-1/2 top-6 px-4 py-2 rounded-lg bg-black/40 border border-white/10 neon-blue z-[10000]">{message}</div>}
+      {skillActivation && (
+        <div className="skill-activation-overlay">
+          <div className="skill-activation-content" style={{ '--skill-color': skillActivation.color }}>
+            <div className="skill-icon">{skillActivation.icon}</div>
+            <div className="skill-label">{skillActivation.label}</div>
+          </div>
+        </div>
+      )}
       {isIntermission && <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-[9999]"><h2 className="text-4xl font-bold neon-pink mb-4">ROUND {round} STARTING</h2><div className="text-6xl font-bold neon-blue mb-4">{intermissionTimer}</div><p className="text-xl text-slate-300">Prepare for more speed!</p></div>}
       {isPaused && <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md z-[9999]"><h2 className="text-6xl font-bold neon-blue mb-8 tracking-widest">PAUSED</h2><button onClick={() => setIsPaused(false)} className="btn primary px-12 py-5 text-2xl gta-font border-2 border-blue-400 hover:bg-blue-500/20 transition-all mb-4" style={{ textTransform: 'uppercase', width: '320px' }}>Resume Mission</button><button onClick={onExit} className="btn px-12 py-5 text-xl gta-font border border-white/20 hover:bg-white/10 transition-all" style={{ textTransform: 'uppercase', width: '320px' }}>Return to Home</button></div>}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-card border-t game-bottom-bar" style={{ backdropFilter: 'blur(4px)' }}>
