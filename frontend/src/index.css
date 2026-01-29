@@ -392,6 +392,19 @@ body {
     width: 48px;
     height: 48px
   }
+
+  .btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .container.grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+  }
 }
 
 .teal-glow {

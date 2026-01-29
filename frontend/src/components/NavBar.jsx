@@ -8,7 +8,7 @@ const NavBar = () => {
   if (loc.pathname === '/') return null
 
   return (
-    <header className="w-full py-4 px-6 flex items-center justify-between" style={{
+    <header className="w-full py-3 px-4 md:py-4 md:px-6 flex items-center justify-between flex-wrap gap-3" style={{
       position: 'sticky',
       top: 0,
       zIndex: 100,
@@ -16,18 +16,18 @@ const NavBar = () => {
       backdropFilter: 'blur(12px)',
       borderBottom: '1px solid rgba(255,255,255,0.08)'
     }}>
-      <div className="flex items-center gap-4">
-        <img src="/logo.png" alt="Logo" style={{ width: 48, height: 'auto' }} />
+      <div className="flex items-center gap-2 md:gap-4">
+        <img src="/logo.png" alt="Logo" style={{ width: 36, height: 'auto' }} className="md:w-12" />
         <div>
-          <div className="gtahero" style={{ fontSize: 24, lineHeight: 1.1 }}>Type Sprint</div>
-          <div className="hero-sub" style={{ fontSize: 13, opacity: 0.8 }}>Pro Typing Arena</div>
+          <div className="gtahero" style={{ fontSize: 18, lineHeight: 1.1 }}>Type Sprint</div>
+          <div className="hero-sub" style={{ fontSize: 11, opacity: 0.8 }}>Pro Typing Arena</div>
         </div>
       </div>
 
-      <nav className="flex items-center gap-3">
-        <Link to="/dashboard" className={`btn ${loc.pathname === '/dashboard' ? 'btn primary' : ''}`}>Dashboard</Link>
-        <Link to="/game" className={`btn ${loc.pathname === '/game' ? 'btn primary' : ''}`}>Play</Link>
-        <Link to="/leaderboard" className={`btn ${loc.pathname === '/leaderboard' ? 'btn primary' : ''}`}>Leaderboard</Link>
+      <nav className="flex items-center gap-2 flex-wrap">
+        <Link to="/dashboard" className={`btn ${loc.pathname === '/dashboard' ? 'btn primary' : ''}`} style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem' }}>Dashboard</Link>
+        <Link to="/game" className={`btn ${loc.pathname === '/game' ? 'btn primary' : ''}`} style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem' }}>Play</Link>
+        <Link to="/leaderboard" className={`btn ${loc.pathname === '/leaderboard' ? 'btn primary' : ''}`} style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem' }}>Leaderboard</Link>
       </nav>
     </header>
   )
