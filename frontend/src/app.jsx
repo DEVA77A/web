@@ -4,8 +4,10 @@ import LoginPage from './pages/LoginPage.jsx'
 import DashboardPage from './pages/Dashboard.jsx'
 import GamePage from './pages/GamePage.jsx'
 import LeaderboardPage from './pages/LeaderboardPage.jsx'
+import ProfilePage from './pages/ProfilePage.jsx'
 import NavBar from './components/NavBar.jsx'
 import './index.css'
+import './styles/Animations.css'
 
 // Top-level app: routing wrapped with site chrome (nav + theme)
 const App = () => {
@@ -17,6 +19,7 @@ const App = () => {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/game" element={<GamePage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

@@ -1,8 +1,13 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { getUser, getProfile, getBadge } from '../utils/storage.js'
 
 const NavBar = () => {
   const loc = useLocation()
+  const user = getUser()
+  const userId = user?.name || user
+  const profile = userId ? getProfile(userId) : null
+  const badge = profile ? getBadge(profile.loginStreak) : null
 
   // Hide Navbar on Login Page
   if (loc.pathname === '/') return null
@@ -28,6 +33,31 @@ const NavBar = () => {
         <Link to="/dashboard" className={`btn ${loc.pathname === '/dashboard' ? 'btn primary' : ''}`} style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem' }}>Dashboard</Link>
         <Link to="/game" className={`btn ${loc.pathname === '/game' ? 'btn primary' : ''}`} style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem' }}>Play</Link>
         <Link to="/leaderboard" className={`btn ${loc.pathname === '/leaderboard' ? 'btn primary' : ''}`} style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem' }}>Leaderboard</Link>
+        <Link 
+          to="/profile" 
+          className={`btn ${loc.pathname === '/profile' ? 'btn primary' : ''}`}
+          style={{
+            fontSize: '0.875rem',
+            padding: '0.5rem 0.75rem',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          Profile
+          {badge && (
+            <span
+              style={{
+                fontSize: '1rem',
+                filter: `drop-shadow(0 0 6px ${badge.color})`,
+                animation: 'badge-pulse 2s ease-in-out infinite'
+              }}
+            >
+              {badge.emoji}
+            </span>
+          )}
+        </Link>
       </nav>
     </header>
   )

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import gsap from 'gsap'
+import '../styles/Animations.css'
 
 const LandingPage = () => {
   const titleRef = useRef(null)
@@ -23,10 +24,29 @@ const LandingPage = () => {
   }, [])
 
   return (
-    <div className="app-shell">
-      <div className="container grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+    <>
+      <div className="cyber-grid"></div>
+      <div className="particles-bg">
+        {[...Array(25)].map((_, i) => (
+          <div 
+            key={i} 
+            className="particle" 
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 8}s`,
+              animationDuration: `${6 + Math.random() * 6}s`
+            }}
+          />
+        ))}
+      </div>
+      <div className="app-shell">
+        <div className="container grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         <div className="text-left">
-          <h1 ref={titleRef} className="hero-title gtahero">Type Sprint</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+            <span className="trophy-icon" style={{ fontSize: '3rem' }}>🏆</span>
+            <h1 ref={titleRef} className="hero-title gtahero" style={{ margin: 0 }}>Type Sprint</h1>
+          </div>
           <p ref={subtitleRef} className="mt-4 text-lg text-muted max-w-xl">A fast-paced, neon-styled typing sprint. Type falling words before they hit the ground — rack up combos, level up, and climb the leaderboard.</p>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -50,7 +70,8 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

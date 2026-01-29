@@ -16,7 +16,7 @@ const GamePage = () => {
     const username = user?.name || 'Anonymous'
     const userId = user?.id || null
 
-    saveScore(username, data.score)
+    saveScore(username, data.score, data.accuracy)
     // also send to server leaderboard (fire-and-forget)
     try {
       postScore({

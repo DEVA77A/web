@@ -2,11 +2,20 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getLeaderboard, removeUser } from '../utils/storage.js'
 import { getTopScores } from '../services/api.js'
+import PlayerProfile from '../components/PlayerProfile.jsx'
+import '../styles/Animations.css'
 
 const LeaderboardPage = () => {
 	const [scores, setScores] = useState([])
 	const [loading, setLoading] = useState(false)
 	const navigate = useNavigate()
+
+	const getCrown = (index) => {
+		if (index === 0) return <span className="crown-icon crown-gold">👑</span>
+		if (index === 1) return <span className="crown-icon crown-silver">👑</span>
+		if (index === 2) return <span className="crown-icon crown-bronze">👑</span>
+		return null
+	}
 
 	const loadScores = () => {
 		setLoading(true)
@@ -33,8 +42,24 @@ const LeaderboardPage = () => {
 	}
 
 	return (
-		<div className="page-center">
-			<div className="container">
+		<>
+			<div className="cyber-grid"></div>
+			<div className="particles-bg">
+				{[...Array(20)].map((_, i) => (
+					<div 
+						key={i} 
+						className="particle" 
+						style={{
+							left: `${Math.random() * 100}%`,
+							top: `${Math.random() * 100}%`,
+							animationDelay: `${Math.random() * 8}s`,
+							animationDuration: `${8 + Math.random() * 4}s`
+						}}
+					/>
+				))}
+			</div>
+			<div className="page-center">
+				<div className="container">
 				<div className="glass-card">
 					<div className="leaderboard-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -51,17 +76,23 @@ const LeaderboardPage = () => {
 					</div>
 
 					{loading ? (
-						<div className="muted">Loading leaderboard…</div>
+					<div className="muted" style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center', padding: '2rem' }}>
+						<div className="loading-spinner"></div>
+						<span>Loading leaderboard…</span>
+					</div>
 					) : scores.length === 0 ? (
 						<div className="muted">No scores yet — play to create the first score!</div>
 					) : (
 						<div>
 							<ol className="leader-list">
 								{scores.map((s, i) => (
-									<li key={s._id || i} className="leader-row">
-										<div className="leader-rank">{i + 1}</div>
-										<div className="leader-name">{s.name || s.username || 'Anonymous'}</div>
-										<div className="leader-score">{s.score}</div>
+								<li key={s._id || i} className={`leader-row rank-${i + 1}`} style={{ '--index': i }}>
+									<div className="leader-rank">{i + 1}</div>
+									<div className="leader-name" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+										{getCrown(i)}
+										<PlayerProfile userId={s.name || s.username || 'Anonymous'} compact={true} />
+									</div>
+									<div className="leader-score score-animate">{s.score}</div>
 									</li>
 								))}
 							</ol>
@@ -71,8 +102,9 @@ const LeaderboardPage = () => {
 						<Link to="/dashboard" className="btn primary">Go to Dashboard</Link>
 					</div>
 				</div>
+				</div>
 			</div>
-		</div>
+		</>
 	)
 }
 
