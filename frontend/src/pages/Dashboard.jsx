@@ -91,8 +91,8 @@ const Dashboard = () => {
           />
         ))}
       </div>
-      <div className="page-center" style={{ paddingTop: '8px', minHeight: 'auto', height: 'auto', overflow: 'auto' }}>
-        <div className="container grid md:grid-cols-2 gap-6" style={{ maxWidth: '100%', padding: '0 1rem' }}>
+      <div className="page-center">
+        <div className="container grid md:grid-cols-2 gap-6">
         <div>
           <div className="glass-card">
             <h2 className="hero-title gtahero">Welcome, {user?.name || user}</h2>

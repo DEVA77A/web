@@ -84,8 +84,8 @@ const LeaderboardPage = () => {
 					/>
 				))}
 			</div>
-			<div className="page-center" style={{ minHeight: 'auto', height: 'auto', overflow: 'auto', paddingBottom: '2rem' }}>
-				<div className="container" style={{ maxWidth: '100%', padding: '0 1rem' }}>
+			<div className="page-center">
+				<div className="container">
 				<div className="glass-card">
 					<div className="leaderboard-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

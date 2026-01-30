@@ -79,8 +79,8 @@ const ProfilePage = () => {
         ))}
       </div>
       
-      <div className="page-center" style={{ minHeight: 'auto', height: 'auto', overflow: 'auto', paddingBottom: '2rem' }}>
-        <div className="container" style={{ maxWidth: '100%', padding: '0 1rem' }}>
+      <div className="page-center">
+        <div className="container">
           <div className="glass-card">
             {/* Header with Navigation */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '16px' }}>
