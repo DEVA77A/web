@@ -230,7 +230,8 @@ if (useDb) {
 }
 
 // Utility endpoint to sync scores to profiles (for fixing existing data)
-app.post('/api/admin/sync-profiles', async (req, res) => {
+// Accept both GET and POST for easy browser access
+const syncProfilesHandler = async (req, res) => {
 	if (!ScoreModel || !UserProfile) {
 		return res.json({ message: 'Database not available' })
 	}
@@ -270,7 +271,10 @@ app.post('/api/admin/sync-profiles', async (req, res) => {
 		console.error('Sync error:', err)
 		res.status(500).json({ error: 'Sync failed' })
 	}
-})
+}
+
+app.get('/api/admin/sync-profiles', syncProfilesHandler)
+app.post('/api/admin/sync-profiles', syncProfilesHandler)
 
 app.get('/api/words', (req, res) => {
 	const count = Math.max(1, Math.min(10, parseInt(req.query.count || '3', 10)))
