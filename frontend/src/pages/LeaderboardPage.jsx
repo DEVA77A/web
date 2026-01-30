@@ -38,10 +38,6 @@ const LeaderboardPage = () => {
 			setLoading(false)
 		}
 	}
-		} finally {
-			setLoading(false)
-		}
-	}
 
 	useEffect(() => {
 		loadScores()
