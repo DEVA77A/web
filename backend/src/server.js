@@ -30,6 +30,8 @@ const memoryScores = []
 
 // If MONGO_URI or MONGODB_URI is set and SKIP_DB is not set, try to connect and use a mongoose model
 let ScoreModel = null
+let UserProfile = null
+let User = null
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI
 const useDb = !process.env.SKIP_DB && !!mongoUri
 if (useDb) {
@@ -43,7 +45,7 @@ if (useDb) {
 		password: { type: String, required: true },
 		createdAt: { type: Date, default: Date.now }
 	})
-	const User = mongoose.models.User || mongoose.model('User', UserSchema)
+	User = mongoose.models.User || mongoose.model('User', UserSchema)
 
 	const ScoreSchema = new mongoose.Schema({
 		user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -68,7 +70,7 @@ if (useDb) {
 		lastLogin: { type: Date },
 		firstLogin: { type: Date, default: Date.now }
 	}, { timestamps: true })
-	const UserProfile = mongoose.models.UserProfile || mongoose.model('UserProfile', UserProfileSchema)
+	UserProfile = mongoose.models.UserProfile || mongoose.model('UserProfile', UserProfileSchema)
 
 	// User Login (find or create with password)
 	app.post('/api/users/login', async (req, res) => {
