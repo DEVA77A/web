@@ -21,28 +21,23 @@ const LeaderboardPage = () => {
 		setLoading(true)
 		try {
 			const list = await getTopScores(10)
+			console.log('Leaderboard received:', list)
 			if (Array.isArray(list) && list.length > 0) {
-				// Always use server scores when available
+				// Always use server scores - show all users
 				setScores(list.slice(0, 10))
 			} else {
-				// Only use local as absolute fallback
-				const local = getLeaderboard().slice(0, 10).map(s => ({ 
-					_id: s.username, 
-					name: s.username, 
-					score: s.score, 
-					accuracy: s.accuracy || 0 
-				}))
-				setScores(local)
+				// If server returns empty, show empty (don't use localStorage)
+				console.warn('No scores from server')
+				setScores([])
 			}
 		} catch (err) {
-			console.warn('Failed to load scores from server, using local', err)
-			const local = getLeaderboard().slice(0, 10).map(s => ({ 
-				_id: s.username, 
-				name: s.username, 
-				score: s.score, 
-				accuracy: s.accuracy || 0 
-			}))
-			setScores(local)
+			console.error('Failed to load scores from server:', err)
+			// On error, try again or show empty - don't use localStorage
+			setScores([])
+		} finally {
+			setLoading(false)
+		}
+	}
 		} finally {
 			setLoading(false)
 		}

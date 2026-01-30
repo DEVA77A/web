@@ -23,28 +23,19 @@ const Dashboard = () => {
       setLoading(true)
       try {
         const list = await getTopScores(3)
+        console.log('Dashboard received:', list)
         if (Array.isArray(list) && list.length > 0) {
-          // Always use backend data when available
+          // Always use backend data - shows all users
           setTop(list.slice(0, 3))
         } else {
-          // Only use local as absolute fallback
-          const local = getLeaderboard().slice(0, 3).map(s => ({ 
-            _id: s.username, 
-            username: s.username, 
-            name: s.username,
-            score: s.score 
-          }))
-          setTop(local)
+          // If server returns empty, show empty (don't use localStorage)
+          console.warn('No scores from server')
+          setTop([])
         }
       } catch (err) {
-        console.warn('Failed to load top scores, using local', err)
-        const local = getLeaderboard().slice(0, 3).map(s => ({ 
-          _id: s.username, 
-          username: s.username,
-          name: s.username, 
-          score: s.score 
-        }))
-        setTop(local)
+        console.error('Failed to load top scores:', err)
+        // On error, show empty - don't use localStorage
+        setTop([])
       } finally {
         setLoading(false)
       }
