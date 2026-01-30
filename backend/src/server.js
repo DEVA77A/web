@@ -227,6 +227,49 @@ if (useDb) {
 	})
 }
 
+// Utility endpoint to sync scores to profiles (for fixing existing data)
+app.post('/api/admin/sync-profiles', async (req, res) => {
+	if (!ScoreModel || !UserProfile) {
+		return res.json({ message: 'Database not available' })
+	}
+	
+	try {
+		const scores = await ScoreModel.find().lean()
+		let synced = 0
+		
+		for (const score of scores) {
+			const userId = score.userId || score.user?.toString()
+			if (!userId) continue
+			
+			let profile = await UserProfile.findOne({ userId })
+			
+			if (!profile) {
+				await UserProfile.create({
+					userId,
+					username: score.name,
+					highestScore: score.score,
+					totalGames: 1,
+					totalAccuracy: score.accuracy || 0,
+					gamesPlayed: 1,
+					loginStreak: 1,
+					lastLogin: new Date(),
+					firstLogin: new Date()
+				})
+				synced++
+			} else if (score.score > profile.highestScore) {
+				profile.highestScore = score.score
+				await profile.save()
+				synced++
+			}
+		}
+		
+		res.json({ message: `Synced ${synced} profiles`, total: scores.length })
+	} catch (err) {
+		console.error('Sync error:', err)
+		res.status(500).json({ error: 'Sync failed' })
+	}
+})
+
 app.get('/api/words', (req, res) => {
 	const count = Math.max(1, Math.min(10, parseInt(req.query.count || '3', 10)))
 	const words = []
@@ -251,27 +294,31 @@ app.get('/api/scores/top', async (req, res) => {
 	const limit = Math.max(5, Math.min(100, parseInt(req.query.limit || '10', 10)))
 	try {
 		if (ScoreModel) {
-			// Use UserProfile for accurate highest scores if available
+			// Always use UserProfile for accurate highest scores
 			if (UserProfile) {
-				const profiles = await UserProfile.find()
-					.sort({ highestScore: -1 })
-					.limit(limit)
-					.lean()
-				
-				// Map to score format
-				const results = profiles
-					.filter(p => p.highestScore > 0) // Only show users with scores
-					.map(p => ({
-						_id: p.userId,
+				try {
+					const profiles = await UserProfile.find({ highestScore: { $gt: 0 } })
+						.sort({ highestScore: -1 })
+						.limit(limit)
+						.lean()
+					
+					// Map to score format
+					const results = profiles.map(p => ({
+						_id: p._id,
 						name: p.username,
 						username: p.username,
 						score: p.highestScore,
 						accuracy: p.gamesPlayed > 0 ? Math.round(p.totalAccuracy / p.gamesPlayed) : 0,
-						level: 1
+						level: 1,
+						createdAt: p.createdAt
 					}))
-				
-				if (results.length > 0) {
-					return res.json(results)
+					
+					if (results.length > 0) {
+						console.log(`Returning ${results.length} profiles from leaderboard`)
+						return res.json(results)
+					}
+				} catch (profileErr) {
+					console.error('Error fetching from UserProfile:', profileErr)
 				}
 			}
 			
@@ -340,25 +387,35 @@ app.post('/api/scores', async (req, res) => {
 			
 			// Update user profile if userId is provided
 			if (userId && UserProfile) {
-				let profile = await UserProfile.findOne({ userId })
-				
-				if (!profile) {
-					profile = await UserProfile.create({
-						userId,
-						username: name,
-						highestScore: score,
-						totalGames: 1,
-						totalAccuracy: accuracy,
-						gamesPlayed: 1
-					})
-				} else {
-					if (score > profile.highestScore) {
-						profile.highestScore = score
+				try {
+					let profile = await UserProfile.findOne({ userId })
+					
+					if (!profile) {
+						console.log(`Creating new profile for ${name} (${userId})`)
+						profile = await UserProfile.create({
+							userId,
+							username: name,
+							highestScore: score,
+							totalGames: 1,
+							totalAccuracy: accuracy,
+							gamesPlayed: 1,
+							loginStreak: 1,
+							lastLogin: new Date(),
+							firstLogin: new Date()
+						})
+					} else {
+						console.log(`Updating profile for ${name} - old high: ${profile.highestScore}, new: ${score}`)
+						if (score > profile.highestScore) {
+							profile.highestScore = score
+						}
+						profile.totalAccuracy += accuracy
+						profile.gamesPlayed += 1
+						profile.totalGames += 1
+						await profile.save()
 					}
-					profile.totalAccuracy += accuracy
-					profile.gamesPlayed += 1
-					profile.totalGames += 1
-					await profile.save()
+					console.log(`Profile updated: ${name} - highestScore: ${profile.highestScore}`)
+				} catch (profileError) {
+					console.error('Error updating profile:', profileError)
 				}
 			}
 			
