@@ -19,22 +19,59 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    setLoading(true)
-    getTopScores(3)
-      .then((list) => {
+    const loadTopScores = async () => {
+      setLoading(true)
+      try {
+        const list = await getTopScores(3)
         if (Array.isArray(list) && list.length > 0) {
+          // Always use backend data when available
           setTop(list.slice(0, 3))
         } else {
-          // Fallback to local
-          const local = getLeaderboard().slice(0, 3).map(s => ({ _id: s.username, username: s.username, score: s.score }))
+          // Only use local as absolute fallback
+          const local = getLeaderboard().slice(0, 3).map(s => ({ 
+            _id: s.username, 
+            username: s.username, 
+            name: s.username,
+            score: s.score 
+          }))
           setTop(local)
         }
-      })
-      .catch(() => {
-        const local = getLeaderboard().slice(0, 3).map(s => ({ _id: s.username, username: s.username, score: s.score }))
+      } catch (err) {
+        console.warn('Failed to load top scores, using local', err)
+        const local = getLeaderboard().slice(0, 3).map(s => ({ 
+          _id: s.username, 
+          username: s.username,
+          name: s.username, 
+          score: s.score 
+        }))
         setTop(local)
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadTopScores()
+    
+    // Auto-refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadTopScores()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    // Also refresh every 30 seconds when page is active
+    const intervalId = setInterval(() => {
+      if (!document.hidden) {
+        loadTopScores()
+      }
+    }, 30000)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      clearInterval(intervalId)
+    }
   }, [])
 
   return (
@@ -54,8 +91,8 @@ const Dashboard = () => {
           />
         ))}
       </div>
-      <div className="page-center" style={{ paddingTop: '20px' }}>
-        <div className="container grid md:grid-cols-2 gap-6">
+      <div className="page-center" style={{ paddingTop: '8px', minHeight: 'auto', height: 'auto', overflow: 'auto' }}>
+        <div className="container grid md:grid-cols-2 gap-6" style={{ maxWidth: '100%', padding: '0 1rem' }}>
         <div>
           <div className="glass-card">
             <h2 className="hero-title gtahero">Welcome, {user?.name || user}</h2>

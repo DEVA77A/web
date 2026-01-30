@@ -17,23 +17,49 @@ const LeaderboardPage = () => {
 		return null
 	}
 
-	const loadScores = () => {
+	const loadScores = async () => {
 		setLoading(true)
-		getTopScores(10).then((list) => {
+		try {
+			const list = await getTopScores(10)
 			if (Array.isArray(list) && list.length > 0) {
+				// Always use server scores when available
 				setScores(list.slice(0, 10))
 			} else {
-				const local = getLeaderboard().slice(0, 10).map(s => ({ _id: s.username, name: s.username, score: s.score, accuracy: 0 }))
+				// Only use local as absolute fallback
+				const local = getLeaderboard().slice(0, 10).map(s => ({ 
+					_id: s.username, 
+					name: s.username, 
+					score: s.score, 
+					accuracy: s.accuracy || 0 
+				}))
 				setScores(local)
 			}
-		}).catch(() => {
-			const local = getLeaderboard().slice(0, 10).map(s => ({ _id: s.username, name: s.username, score: s.score, accuracy: 0 }))
+		} catch (err) {
+			console.warn('Failed to load scores from server, using local', err)
+			const local = getLeaderboard().slice(0, 10).map(s => ({ 
+				_id: s.username, 
+				name: s.username, 
+				score: s.score, 
+				accuracy: s.accuracy || 0 
+			}))
 			setScores(local)
-		}).finally(() => setLoading(false))
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	useEffect(() => {
 		loadScores()
+		
+		// Refresh leaderboard when page becomes visible
+		const handleVisibilityChange = () => {
+			if (!document.hidden) {
+				loadScores()
+			}
+		}
+		
+		document.addEventListener('visibilitychange', handleVisibilityChange)
+		return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
 	}, [])
 
 	const handleBackToLogin = () => {
@@ -58,8 +84,8 @@ const LeaderboardPage = () => {
 					/>
 				))}
 			</div>
-			<div className="page-center">
-				<div className="container">
+			<div className="page-center" style={{ minHeight: 'auto', height: 'auto', overflow: 'auto', paddingBottom: '2rem' }}>
+				<div className="container" style={{ maxWidth: '100%', padding: '0 1rem' }}>
 				<div className="glass-card">
 					<div className="leaderboard-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

@@ -13,9 +13,9 @@ export const getTopScores = async (req, res) => {
 
 export const postScore = async (req, res) => {
   try {
-    const { name = 'Anonymous', score = 0, accuracy = 0, level = 1 } = req.body || {}
+    const { name = 'Anonymous', score = 0, accuracy = 0, level = 1, userId, round = 1 } = req.body || {}
     if (!Score.create) return res.json({ ok: true })
-    const doc = await Score.create({ name, score, accuracy, level })
+    const doc = await Score.create({ name, score, accuracy, level, userId, round })
     res.json(doc)
   } catch (err) {
     console.error(err)

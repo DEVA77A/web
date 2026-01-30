@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import GameBoard from '../components/GameBoard.clean.jsx'
-import { saveScore, getUser, removeUser } from '../utils/storage.js'
-import { postScore } from '../services/api.js'
+import { saveScore, getUser, removeUser, updateProfile } from '../utils/storage.js'
+import { postScore, updateUserProfile } from '../services/api.js'
 
 const GamePage = () => {
   const navigate = useNavigate()
@@ -14,20 +14,32 @@ const GamePage = () => {
     // save to local leaderboard
     const user = getUser()
     const username = user?.name || 'Anonymous'
-    const userId = user?.id || null
+    const userId = user?.id || user?.name || null
 
     saveScore(username, data.score, data.accuracy)
-    // also send to server leaderboard (fire-and-forget)
+    updateProfile(username, { score: data.score, accuracy: data.accuracy })
+    
+    // also send to server leaderboard and profile (fire-and-forget)
     try {
       postScore({
         name: username,
         score: data.score,
         accuracy: data.accuracy,
         level: data.level,
-        userId: userId
+        userId: userId,
+        round: data.round
       })
+      
+      // Update backend profile
+      if (userId) {
+        updateUserProfile(userId, {
+          score: data.score,
+          accuracy: data.accuracy,
+          username: username
+        })
+      }
     } catch (e) {
-      console.warn('failed to post score', e)
+      console.warn('failed to post score or update profile', e)
     }
   }, [gameOverData])
 
@@ -42,8 +54,8 @@ const GamePage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex justify-center items-start game-page-wrapper">
-      <div className="container game-container">
+    <div className="min-h-screen w-full flex justify-center items-start game-page-wrapper" style={{ overflow: 'auto', height: '100vh' }}>
+      <div className="container game-container" style={{ maxWidth: '100%', padding: '1rem' }}>
         <div className="glass-card game-card-wrapper">
           <GameBoard onGameOver={handleGameOver} onExit={() => navigate('/dashboard')} />
         </div>

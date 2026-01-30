@@ -265,7 +265,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem
+  padding: 2rem;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .card {
@@ -545,7 +547,10 @@ body {
   }
 
   .page-center {
-    padding: 1rem;
+    padding: 0.5rem;
+    min-height: auto;
+    align-items: flex-start;
+    padding-top: 0.5rem;
   }
 
   /* Dashboard buttons */

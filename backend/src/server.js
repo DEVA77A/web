@@ -47,13 +47,28 @@ if (useDb) {
 
 	const ScoreSchema = new mongoose.Schema({
 		user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+		userId: { type: String, index: true }, // Also store string userId for quick lookup
 		name: { type: String, default: 'Anonymous' }, // Keep name for legacy or guests
 		score: { type: Number, required: true },
 		accuracy: { type: Number, default: 0 },
 		level: { type: Number, default: 1 },
+		round: { type: Number, default: 1 },
 		createdAt: { type: Date, default: Date.now }
 	})
 	ScoreModel = mongoose.models.Score || mongoose.model('Score', ScoreSchema)
+
+	const UserProfileSchema = new mongoose.Schema({
+		userId: { type: String, required: true, unique: true, index: true },
+		username: { type: String, required: true },
+		highestScore: { type: Number, default: 0 },
+		totalGames: { type: Number, default: 0 },
+		totalAccuracy: { type: Number, default: 0 },
+		gamesPlayed: { type: Number, default: 0 },
+		loginStreak: { type: Number, default: 0 },
+		lastLogin: { type: Date },
+		firstLogin: { type: Date, default: Date.now }
+	}, { timestamps: true })
+	const UserProfile = mongoose.models.UserProfile || mongoose.model('UserProfile', UserProfileSchema)
 
 	// User Login (find or create with password)
 	app.post('/api/users/login', async (req, res) => {
@@ -64,16 +79,150 @@ if (useDb) {
 			if (user) {
 				// Verify password
 				if (user.password !== password) {
-					return res.status(401).json({ error: 'Incorrect password' })
+					return res.status(401).json({ error: 'Incorrect password. Please try again.' })
 				}
 			} else {
+				// Check if creating new user - username must be unique
+				const existingUser = await User.findOne({ name })
+				if (existingUser) {
+					return res.status(409).json({ error: 'Username already taken. Please choose a different name.' })
+				}
 				// Create new user
 				user = await User.create({ name, password })
 			}
+			
+			// Update login streak
+			await updateUserLoginStreak(user._id.toString(), name)
+			
 			res.json({ id: user._id, name: user.name })
 		} catch (err) {
 			console.error('Login error', err)
+			// Handle duplicate key error for username
+			if (err.code === 11000) {
+				return res.status(409).json({ error: 'Username already taken. Please choose a different name.' })
+			}
 			res.status(500).json({ error: 'server error' })
+		}
+	})
+
+	// Helper function to update login streak
+	async function updateUserLoginStreak(userId, username) {
+		try {
+			let profile = await UserProfile.findOne({ userId })
+			
+			if (!profile) {
+				profile = await UserProfile.create({
+					userId,
+					username,
+					loginStreak: 1,
+					lastLogin: new Date(),
+					firstLogin: new Date()
+				})
+				return profile
+			}
+			
+			const today = new Date()
+			today.setHours(0, 0, 0, 0)
+			
+			const lastLogin = profile.lastLogin ? new Date(profile.lastLogin) : null
+			if (lastLogin) {
+				lastLogin.setHours(0, 0, 0, 0)
+			}
+			
+			const todayTime = today.getTime()
+			const lastLoginTime = lastLogin ? lastLogin.getTime() : 0
+			
+			// Check if already logged in today
+			if (lastLoginTime === todayTime) {
+				return profile
+			}
+			
+			const yesterday = new Date(today)
+			yesterday.setDate(yesterday.getDate() - 1)
+			const yesterdayTime = yesterday.getTime()
+			
+			if (lastLoginTime === yesterdayTime) {
+				profile.loginStreak += 1
+			} else {
+				profile.loginStreak = 1
+			}
+			
+			profile.lastLogin = new Date()
+			await profile.save()
+			return profile
+		} catch (err) {
+			console.error('updateUserLoginStreak error:', err)
+		}
+	}
+
+	// Get user profile
+	app.get('/api/profile/:userId', async (req, res) => {
+		try {
+			const { userId } = req.params
+			if (!userId) return res.status(400).json({ error: 'userId is required' })
+			
+			let profile = await UserProfile.findOne({ userId })
+			
+			if (!profile) {
+				profile = await UserProfile.create({
+					userId,
+					username: userId,
+					highestScore: 0,
+					totalGames: 0,
+					totalAccuracy: 0,
+					gamesPlayed: 0,
+					loginStreak: 0,
+					firstLogin: new Date()
+				})
+			}
+			
+			res.json(profile)
+		} catch (err) {
+			console.error('getUserProfile error:', err)
+			res.status(500).json({ error: 'Could not fetch profile' })
+		}
+	})
+
+	// Update user profile stats
+	app.put('/api/profile/:userId', async (req, res) => {
+		try {
+			const { userId } = req.params
+			const { score, accuracy, username } = req.body || {}
+			
+			if (!userId) return res.status(400).json({ error: 'userId is required' })
+			
+			let profile = await UserProfile.findOne({ userId })
+			
+			if (!profile) {
+				profile = await UserProfile.create({
+					userId,
+					username: username || userId,
+					highestScore: score || 0,
+					totalGames: 1,
+					totalAccuracy: accuracy || 0,
+					gamesPlayed: 1,
+					loginStreak: 1,
+					lastLogin: new Date(),
+					firstLogin: new Date()
+				})
+			} else {
+				if (score && score > profile.highestScore) {
+					profile.highestScore = score
+				}
+				
+				if (accuracy !== undefined) {
+					profile.totalAccuracy += accuracy
+					profile.gamesPlayed += 1
+					profile.totalGames += 1
+				}
+				
+				await profile.save()
+			}
+			
+			res.json(profile)
+		} catch (err) {
+			console.error('updateUserProfile error:', err)
+			res.status(500).json({ error: 'Could not update profile' })
 		}
 	})
 }
@@ -102,6 +251,31 @@ app.get('/api/scores/top', async (req, res) => {
 	const limit = Math.max(5, Math.min(100, parseInt(req.query.limit || '10', 10)))
 	try {
 		if (ScoreModel) {
+			// Use UserProfile for accurate highest scores if available
+			if (UserProfile) {
+				const profiles = await UserProfile.find()
+					.sort({ highestScore: -1 })
+					.limit(limit)
+					.lean()
+				
+				// Map to score format
+				const results = profiles
+					.filter(p => p.highestScore > 0) // Only show users with scores
+					.map(p => ({
+						_id: p.userId,
+						name: p.username,
+						username: p.username,
+						score: p.highestScore,
+						accuracy: p.gamesPlayed > 0 ? Math.round(p.totalAccuracy / p.gamesPlayed) : 0,
+						level: 1
+					}))
+				
+				if (results.length > 0) {
+					return res.json(results)
+				}
+			}
+			
+			// Fallback to scores collection
 			const results = await ScoreModel.aggregate([
 				// 1. Sort by score descending and then by creation date
 				{ $sort: { score: -1, createdAt: 1 } },
@@ -150,43 +324,55 @@ app.get('/api/scores/top', async (req, res) => {
 
 // Post or Update score (Ensure one unique high score per player)
 app.post('/api/scores', async (req, res) => {
-	const { name = 'Anonymous', score = 0, accuracy = 0, level = 1, userId } = req.body || {}
+	const { name = 'Anonymous', score = 0, accuracy = 0, level = 1, userId, round = 1 } = req.body || {}
 	if (typeof score !== 'number') return res.status(400).json({ error: 'score must be a number' })
 	try {
 		if (ScoreModel) {
-			const query = userId && mongoose.Types.ObjectId.isValid(userId) ? { user: userId } : { name }
-
-			let existing = await ScoreModel.findOne(query)
-			if (existing) {
-				// Only update if new score is higher
-				if (score > existing.score) {
-					existing.score = score
-					existing.accuracy = accuracy
-					existing.level = level
-					existing.name = name // Ensure name is kept sync
-					existing.createdAt = new Date()
-					await existing.save()
-				}
-				return res.json(existing)
-			} else {
-				// Create first entry
-				const data = { name, score, accuracy, level }
-				if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+			// Save the score
+			const data = { name, score, accuracy, level, round }
+			if (userId) {
+				data.userId = userId
+				if (mongoose.Types.ObjectId.isValid(userId)) {
 					data.user = userId
 				}
-				const doc = await ScoreModel.create(data)
-				return res.status(201).json(doc)
 			}
+			const doc = await ScoreModel.create(data)
+			
+			// Update user profile if userId is provided
+			if (userId && UserProfile) {
+				let profile = await UserProfile.findOne({ userId })
+				
+				if (!profile) {
+					profile = await UserProfile.create({
+						userId,
+						username: name,
+						highestScore: score,
+						totalGames: 1,
+						totalAccuracy: accuracy,
+						gamesPlayed: 1
+					})
+				} else {
+					if (score > profile.highestScore) {
+						profile.highestScore = score
+					}
+					profile.totalAccuracy += accuracy
+					profile.gamesPlayed += 1
+					profile.totalGames += 1
+					await profile.save()
+				}
+			}
+			
+			return res.status(201).json(doc)
 		}
 		// Memory fallback
 		const entryIdx = memoryScores.findIndex(s => s.name === name)
 		if (entryIdx >= 0) {
 			if (score > memoryScores[entryIdx].score) {
-				memoryScores[entryIdx] = { ...memoryScores[entryIdx], score, accuracy, level, createdAt: new Date() }
+				memoryScores[entryIdx] = { ...memoryScores[entryIdx], score, accuracy, level, round, createdAt: new Date() }
 			}
 			return res.json(memoryScores[entryIdx])
 		}
-		const entry = { _id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name, score, accuracy, level, createdAt: new Date() }
+		const entry = { _id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name, score, accuracy, level, round, createdAt: new Date() }
 		memoryScores.push(entry)
 		return res.status(201).json(entry)
 	} catch (err) {

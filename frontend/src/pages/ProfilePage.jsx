@@ -1,17 +1,60 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getUser, getProfile, getBadge, removeUser } from '../utils/storage.js'
+import { getUserProfile } from '../services/api.js'
 import '../styles/Animations.css'
 
 const ProfilePage = () => {
   const navigate = useNavigate()
   const user = getUser()
-  const userId = user?.name || user || 'Guest'
-  const profile = getProfile(userId)
+  const userId = user?.id || user?.name || 'Guest'
+  const username = user?.name || 'Guest'
+  const [profile, setProfile] = useState(getProfile(userId))
+  const [loading, setLoading] = useState(true)
   const badge = getBadge(profile.loginStreak)
   const avgAccuracy = profile.gamesPlayed > 0 
     ? Math.round(profile.totalAccuracy / profile.gamesPlayed) 
     : 0
+  
+  // Use profile username if available, otherwise fall back to user name
+  const displayName = profile?.username || username
+
+  useEffect(() => {
+    // Fetch profile from backend
+    const fetchProfile = async () => {
+      setLoading(true)
+      try {
+        const backendProfile = await getUserProfile(userId)
+        if (backendProfile) {
+          setProfile(backendProfile)
+        } else {
+          // Fallback to local profile
+          setProfile(getProfile(userId))
+        }
+      } catch (err) {
+        console.warn('Failed to fetch profile, using local', err)
+        setProfile(getProfile(userId))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (userId && userId !== 'Guest') {
+      fetchProfile()
+      
+      // Refresh profile when page becomes visible
+      const handleVisibilityChange = () => {
+        if (!document.hidden && userId && userId !== 'Guest') {
+          fetchProfile()
+        }
+      }
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+      return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    } else {
+      setLoading(false)
+    }
+  }, [userId])
 
   const handleLogout = () => {
     removeUser()
@@ -36,8 +79,8 @@ const ProfilePage = () => {
         ))}
       </div>
       
-      <div className="page-center">
-        <div className="container">
+      <div className="page-center" style={{ minHeight: 'auto', height: 'auto', overflow: 'auto', paddingBottom: '2rem' }}>
+        <div className="container" style={{ maxWidth: '100%', padding: '0 1rem' }}>
           <div className="glass-card">
             {/* Header with Navigation */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '16px' }}>
@@ -58,11 +101,18 @@ const ProfilePage = () => {
 
             {/* Profile Content */}
             <div style={{ marginTop: '2rem' }}>
+              {loading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem', gap: '12px' }}>
+                  <div className="loading-spinner"></div>
+                  <span className="muted">Loading profile...</span>
+                </div>
+              ) : (
+                <>
               {/* Player Header with Badge */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '24px' }}>
                 <div style={{ flex: 1 }}>
                   <h1 className="neon-text" style={{ fontSize: '3rem', margin: 0, marginBottom: '8px' }}>
-                    {userId}
+                    {displayName}
                   </h1>
                   <div style={{ fontSize: '1.1rem', color: '#94a3b8' }}>
                     Type Sprint Champion
@@ -279,6 +329,8 @@ const ProfilePage = () => {
                   Start Playing
                 </Link>
               </div>
+                </>
+              )}
             </div>
           </div>
         </div>

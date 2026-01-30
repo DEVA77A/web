@@ -62,12 +62,12 @@ export async function loginUser(name, password) {
   }
 }
 
-export async function postScore({ name = 'Anonymous', score = 0, accuracy = 0, level = 1, userId } = {}) {
+export async function postScore({ name = 'Anonymous', score = 0, accuracy = 0, level = 1, userId, round = 1 } = {}) {
   try {
     const res = await fetch(buildUrl('/api/scores'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, score, accuracy, level, userId })
+      body: JSON.stringify({ name, score, accuracy, level, userId, round })
     })
     if (!res.ok) throw new Error('Failed to save')
     return await res.json()
@@ -79,11 +79,45 @@ export async function postScore({ name = 'Anonymous', score = 0, accuracy = 0, l
 
 export async function getTopScores(limit = 10) {
   try {
-    const res = await fetch(buildUrl(`/api/scores/top?limit=${encodeURIComponent(String(limit))}`))
+    const timestamp = Date.now()
+    const res = await fetch(buildUrl(`/api/scores/top?limit=${encodeURIComponent(String(limit))}&_t=${timestamp}`), {
+      cache: 'no-cache',
+      headers: { 'Cache-Control': 'no-cache' }
+    })
     if (!res.ok) throw new Error('Network')
     return await res.json()
   } catch (err) {
     console.warn('getTopScores failed', err)
     return []
+  }
+}
+
+export async function getUserProfile(userId) {
+  try {
+    const timestamp = Date.now()
+    const res = await fetch(buildUrl(`/api/profile/${encodeURIComponent(userId)}?_t=${timestamp}`), {
+      cache: 'no-cache',
+      headers: { 'Cache-Control': 'no-cache' }
+    })
+    if (!res.ok) throw new Error('Failed to fetch profile')
+    return await res.json()
+  } catch (err) {
+    console.warn('getUserProfile failed', err)
+    return null
+  }
+}
+
+export async function updateUserProfile(userId, { score, accuracy, username }) {
+  try {
+    const res = await fetch(buildUrl(`/api/profile/${encodeURIComponent(userId)}`), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score, accuracy, username })
+    })
+    if (!res.ok) throw new Error('Failed to update profile')
+    return await res.json()
+  } catch (err) {
+    console.warn('updateUserProfile failed', err)
+    return null
   }
 }

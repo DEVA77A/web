@@ -24,7 +24,15 @@ const LoginForm = ({ onLogin = () => { } }) => {
       onLogin(user)
     } catch (err) {
       console.warn('Login failed', err)
-      setError(err.message || 'Login failed. Check your credentials.')
+      // Show user-friendly error messages
+      const errorMsg = err.message || 'Login failed. Please try again.'
+      if (errorMsg.includes('already taken') || errorMsg.includes('Username already')) {
+        setError('⚠️ Username already taken. Please choose a different name.')
+      } else if (errorMsg.includes('Incorrect password')) {
+        setError('🔒 Incorrect password. Please try again.')
+      } else {
+        setError(errorMsg)
+      }
     }
   }
 
