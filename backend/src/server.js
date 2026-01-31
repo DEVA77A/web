@@ -94,8 +94,8 @@ if (useDb) {
 				user = await User.create({ name, password })
 			}
 			
-			// Update login streak
-			await updateUserLoginStreak(user._id.toString(), name)
+			// Ensure UserProfile exists and is synced with User
+			await ensureUserProfile(user._id.toString(), name)
 			
 			res.json({ id: user._id, name: user.name })
 		} catch (err) {
@@ -108,21 +108,62 @@ if (useDb) {
 		}
 	})
 
-	// Helper function to update login streak
-	async function updateUserLoginStreak(userId, username) {
+	// Helper function to ensure UserProfile exists and is synced
+	async function ensureUserProfile(userId, username) {
 		try {
+			// First check by userId
 			let profile = await UserProfile.findOne({ userId })
 			
 			if (!profile) {
-				profile = await UserProfile.create({
-					userId,
-					username,
-					loginStreak: 1,
-					lastLogin: new Date(),
-					firstLogin: new Date()
+				// Check if there's a profile with this username but different/no userId
+				const profileByName = await UserProfile.findOne({ 
+					username: { $regex: new RegExp(`^${username}$`, 'i') }
 				})
-				return profile
+				
+				if (profileByName) {
+					// Update existing profile with the correct userId
+					profileByName.userId = userId
+					await profileByName.save()
+					profile = profileByName
+					console.log(`Linked existing profile to user: ${username} -> ${userId}`)
+				} else {
+					// Create new profile
+					profile = await UserProfile.create({
+						userId,
+						username,
+						bio: '',
+						highestScore: 0,
+						totalGames: 0,
+						totalAccuracy: 0,
+						gamesPlayed: 0,
+						loginStreak: 1,
+						lastLogin: new Date(),
+						firstLogin: new Date()
+					})
+					console.log(`Created new profile for user: ${username} (${userId})`)
+				}
+			} else {
+				// Ensure username is up to date
+				if (profile.username !== username) {
+					profile.username = username
+					await profile.save()
+				}
 			}
+			
+			// Update login streak
+			await updateLoginStreak(profile)
+			
+			return profile
+		} catch (err) {
+			console.error('ensureUserProfile error:', err)
+			return null
+		}
+	}
+
+	// Helper function to update login streak
+	async function updateLoginStreak(profile) {
+		try {
+			if (!profile) return
 			
 			const today = new Date()
 			today.setHours(0, 0, 0, 0)
@@ -146,7 +187,8 @@ if (useDb) {
 			
 			if (lastLoginTime === yesterdayTime) {
 				profile.loginStreak += 1
-			} else {
+			} else if (lastLoginTime > 0) {
+				// Streak broken, reset to 1
 				profile.loginStreak = 1
 			}
 			
@@ -154,7 +196,7 @@ if (useDb) {
 			await profile.save()
 			return profile
 		} catch (err) {
-			console.error('updateUserLoginStreak error:', err)
+			console.error('updateLoginStreak error:', err)
 		}
 	}
 
@@ -348,41 +390,119 @@ if (useDb) {
 // Utility endpoint to sync scores to profiles (for fixing existing data)
 // Accept both GET and POST for easy browser access
 const syncProfilesHandler = async (req, res) => {
-	if (!ScoreModel || !UserProfile) {
+	if (!ScoreModel || !UserProfile || !User) {
 		return res.json({ message: 'Database not available' })
 	}
 	
 	try {
-		const scores = await ScoreModel.find().lean()
-		let synced = 0
+		// First sync all Users to UserProfiles
+		const users = await User.find().lean()
+		let usersSynced = 0
 		
-		for (const score of scores) {
-			const userId = score.userId || score.user?.toString()
-			if (!userId) continue
-			
+		for (const user of users) {
+			const userId = user._id.toString()
 			let profile = await UserProfile.findOne({ userId })
 			
 			if (!profile) {
+				// Also check by username
+				profile = await UserProfile.findOne({ 
+					username: { $regex: new RegExp(`^${user.name}$`, 'i') }
+				})
+				
+				if (profile) {
+					// Link existing profile to this user
+					profile.userId = userId
+					await profile.save()
+					console.log(`Linked profile to user: ${user.name} -> ${userId}`)
+					usersSynced++
+				} else {
+					// Create new profile for this user
+					await UserProfile.create({
+						userId,
+						username: user.name,
+						bio: '',
+						highestScore: 0,
+						totalGames: 0,
+						totalAccuracy: 0,
+						gamesPlayed: 0,
+						loginStreak: 1,
+						lastLogin: user.updatedAt || new Date(),
+						firstLogin: user.createdAt || new Date()
+					})
+					console.log(`Created profile for user: ${user.name}`)
+					usersSynced++
+				}
+			}
+		}
+		
+		// Now sync scores to update highestScore and games count
+		const scores = await ScoreModel.find().lean()
+		let scoresSynced = 0
+		
+		// Group scores by userId/name
+		const userScores = {}
+		for (const score of scores) {
+			const key = score.userId || score.name
+			if (!userScores[key]) {
+				userScores[key] = {
+					name: score.name,
+					userId: score.userId,
+					scores: [],
+					highestScore: 0,
+					totalAccuracy: 0,
+					gamesPlayed: 0
+				}
+			}
+			userScores[key].scores.push(score)
+			userScores[key].highestScore = Math.max(userScores[key].highestScore, score.score || 0)
+			userScores[key].totalAccuracy += score.accuracy || 0
+			userScores[key].gamesPlayed += 1
+		}
+		
+		// Update profiles with score data
+		for (const [key, data] of Object.entries(userScores)) {
+			let profile = await UserProfile.findOne({ userId: data.userId }) ||
+			              await UserProfile.findOne({ username: { $regex: new RegExp(`^${data.name}$`, 'i') } })
+			
+			if (profile) {
+				let updated = false
+				if (data.highestScore > profile.highestScore) {
+					profile.highestScore = data.highestScore
+					updated = true
+				}
+				if (data.gamesPlayed > profile.gamesPlayed) {
+					profile.gamesPlayed = data.gamesPlayed
+					profile.totalGames = data.gamesPlayed
+					profile.totalAccuracy = data.totalAccuracy
+					updated = true
+				}
+				if (updated) {
+					await profile.save()
+					scoresSynced++
+				}
+			} else if (data.userId) {
+				// Create profile from score data
 				await UserProfile.create({
-					userId,
-					username: score.name,
-					highestScore: score.score,
-					totalGames: 1,
-					totalAccuracy: score.accuracy || 0,
-					gamesPlayed: 1,
+					userId: data.userId,
+					username: data.name,
+					bio: '',
+					highestScore: data.highestScore,
+					totalGames: data.gamesPlayed,
+					totalAccuracy: data.totalAccuracy,
+					gamesPlayed: data.gamesPlayed,
 					loginStreak: 1,
 					lastLogin: new Date(),
 					firstLogin: new Date()
 				})
-				synced++
-			} else if (score.score > profile.highestScore) {
-				profile.highestScore = score.score
-				await profile.save()
-				synced++
+				scoresSynced++
 			}
 		}
 		
-		res.json({ message: `Synced ${synced} profiles`, total: scores.length })
+		res.json({ 
+			message: `Synced ${usersSynced} users and ${scoresSynced} scores`, 
+			totalUsers: users.length,
+			totalScores: scores.length
+		})
 	} catch (err) {
 		console.error('Sync error:', err)
 		res.status(500).json({ error: 'Sync failed' })
@@ -391,6 +511,55 @@ const syncProfilesHandler = async (req, res) => {
 
 app.get('/api/admin/sync-profiles', syncProfilesHandler)
 app.post('/api/admin/sync-profiles', syncProfilesHandler)
+
+// Debug endpoint to see all users and their profiles
+app.get('/api/admin/users-profiles', async (req, res) => {
+	if (!User || !UserProfile) {
+		return res.json({ message: 'Database not available' })
+	}
+	
+	try {
+		const users = await User.find().lean()
+		const profiles = await UserProfile.find().lean()
+		
+		// Map profiles by userId for easy lookup
+		const profilesByUserId = {}
+		const profilesByUsername = {}
+		for (const p of profiles) {
+			if (p.userId) profilesByUserId[p.userId] = p
+			if (p.username) profilesByUsername[p.username.toLowerCase()] = p
+		}
+		
+		// Build merged view
+		const merged = users.map(user => {
+			const userId = user._id.toString()
+			const profile = profilesByUserId[userId] || profilesByUsername[user.name.toLowerCase()]
+			return {
+				userId,
+				username: user.name,
+				hasProfile: !!profile,
+				profile: profile ? {
+					_id: profile._id,
+					userId: profile.userId,
+					username: profile.username,
+					highestScore: profile.highestScore,
+					gamesPlayed: profile.gamesPlayed,
+					bio: profile.bio
+				} : null,
+				linkedCorrectly: profile?.userId === userId
+			}
+		})
+		
+		res.json({
+			totalUsers: users.length,
+			totalProfiles: profiles.length,
+			users: merged
+		})
+	} catch (err) {
+		console.error('Error fetching users/profiles:', err)
+		res.status(500).json({ error: 'Could not fetch data' })
+	}
+})
 
 app.get('/api/words', (req, res) => {
 	const count = Math.max(1, Math.min(10, parseInt(req.query.count || '3', 10)))
