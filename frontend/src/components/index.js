@@ -1,3 +1,6 @@
 export { default as GameBoard } from './GameBoard.clean.jsx'
 export { default as ScoreBoard } from './ScoreBoard.jsx'
 export { default as FallingWord } from './FallingWord2.jsx'
+export { default as PlayerProfile } from './PlayerProfile.jsx'
+export { default as OtherPlayerProfileModal } from './OtherPlayerProfileModal.jsx'
+export { default as MyProfileEditor } from './MyProfileEditor.jsx'

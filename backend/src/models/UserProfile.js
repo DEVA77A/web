@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 const UserProfileSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true, index: true },
   username: { type: String, required: true },
+  bio: { type: String, default: '', maxlength: 200 },
   highestScore: { type: Number, default: 0 },
   totalGames: { type: Number, default: 0 },
   totalAccuracy: { type: Number, default: 0 },

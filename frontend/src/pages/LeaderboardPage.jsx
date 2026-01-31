@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getLeaderboard, removeUser } from '../utils/storage.js'
+import { getLeaderboard, removeUser, getUser } from '../utils/storage.js'
 import { getTopScores } from '../services/api.js'
 import PlayerProfile from '../components/PlayerProfile.jsx'
+import OtherPlayerProfileModal from '../components/OtherPlayerProfileModal.jsx'
+import MyProfileEditor from '../components/MyProfileEditor.jsx'
 import '../styles/Animations.css'
 
 const LeaderboardPage = () => {
 	const [scores, setScores] = useState([])
 	const [loading, setLoading] = useState(false)
+	const [selectedPlayer, setSelectedPlayer] = useState(null)
+	const [showMyProfile, setShowMyProfile] = useState(false)
 	const navigate = useNavigate()
+	const currentUser = getUser()
 
 	const getCrown = (index) => {
 		if (index === 0) return <span className="crown-icon crown-gold">👑</span>
@@ -56,6 +61,19 @@ const LeaderboardPage = () => {
 	const handleBackToLogin = () => {
 		removeUser()
 		navigate('/')
+	}
+
+	const handlePlayerClick = (playerId) => {
+		const currentUserId = currentUser?.id || currentUser?.name
+		if (playerId === currentUserId) {
+			setShowMyProfile(true)
+		} else {
+			setSelectedPlayer(playerId)
+		}
+	}
+
+	const handleBackToDashboard = () => {
+		navigate('/dashboard')
 	}
 
 	return (
@@ -107,12 +125,20 @@ const LeaderboardPage = () => {
 									<div className="leader-rank">{i + 1}</div>
 									<div className="leader-name" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 										{getCrown(i)}
-										<PlayerProfile userId={s.name || s.username || 'Anonymous'} compact={true} />
+										<PlayerProfile 
+											userId={s.name || s.username || 'Anonymous'} 
+											compact={true} 
+											isClickable={true}
+											onClick={handlePlayerClick}
+										/>
 									</div>
 									<div className="leader-score score-animate">{s.score}</div>
 									</li>
 								))}
 							</ol>
+							<p className="text-slate-500 text-sm text-center mt-4">
+								💡 Click on a player name to view their profile
+							</p>
 						</div>
 					)}
 					<div className="mt-6" style={{ textAlign: 'center' }}>
@@ -121,6 +147,23 @@ const LeaderboardPage = () => {
 				</div>
 				</div>
 			</div>
+
+			{/* Other Player Profile Modal */}
+			{selectedPlayer && (
+				<OtherPlayerProfileModal
+					userId={selectedPlayer}
+					onClose={() => setSelectedPlayer(null)}
+					onBackToDashboard={handleBackToDashboard}
+				/>
+			)}
+
+			{/* My Profile Editor Modal */}
+			{showMyProfile && (
+				<MyProfileEditor
+					onClose={() => setShowMyProfile(false)}
+					onBackToDashboard={handleBackToDashboard}
+				/>
+			)}
 		</>
 	)
 }

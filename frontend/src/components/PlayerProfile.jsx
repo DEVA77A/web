@@ -1,17 +1,32 @@
 import React from 'react'
 import { getProfile, getBadge } from '../utils/storage.js'
 
-const PlayerProfile = ({ userId, compact = false }) => {
+const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }) => {
   const profile = getProfile(userId)
   const badge = getBadge(profile.loginStreak)
   const avgAccuracy = profile.gamesPlayed > 0 
     ? Math.round(profile.totalAccuracy / profile.gamesPlayed) 
     : 0
 
+  const handleClick = (e) => {
+    if (isClickable && onClick) {
+      e.preventDefault()
+      e.stopPropagation()
+      onClick(userId)
+    }
+  }
+
   if (compact) {
     return (
-      <div className="player-profile-compact" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-        <span>{userId}</span>
+      <div 
+        className={`player-profile-compact ${isClickable ? 'cursor-pointer hover:text-blue-400 transition-colors' : ''}`}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+        onClick={handleClick}
+        role={isClickable ? 'button' : undefined}
+        tabIndex={isClickable ? 0 : undefined}
+        onKeyDown={isClickable ? (e) => e.key === 'Enter' && handleClick(e) : undefined}
+      >
+        <span className={isClickable ? 'underline-offset-2 hover:underline' : ''}>{userId}</span>
         {badge && (
           <span 
             className="player-badge-compact" 

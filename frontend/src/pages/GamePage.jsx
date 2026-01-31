@@ -1,12 +1,14 @@
 import React, { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import GameBoard from '../components/GameBoard.clean.jsx'
+import MyProfileEditor from '../components/MyProfileEditor.jsx'
 import { saveScore, getUser, removeUser, updateProfile } from '../utils/storage.js'
 import { postScore, updateUserProfile } from '../services/api.js'
 
 const GamePage = () => {
   const navigate = useNavigate()
   const [gameOverData, setGameOverData] = useState(null)
+  const [showMyProfile, setShowMyProfile] = useState(false)
 
   const handleGameOver = useCallback((data) => {
     if (gameOverData) return
@@ -67,6 +69,7 @@ const GamePage = () => {
               <p>Accuracy: <strong>{gameOverData.accuracy}%</strong></p>
               <div className="mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <button className="btn primary" onClick={() => window.location.reload()}>Play Again</button>
+                <button className="btn" onClick={() => setShowMyProfile(true)}>Edit Profile</button>
                 <button className="btn" onClick={handleBack}>Back to Dashboard</button>
                 <Link to="/leaderboard" className="btn">Leaderboard</Link>
               </div>
@@ -74,6 +77,14 @@ const GamePage = () => {
           </div>
         )}
       </div>
+
+      {/* My Profile Editor Modal */}
+      {showMyProfile && (
+        <MyProfileEditor
+          onClose={() => setShowMyProfile(false)}
+          onBackToDashboard={handleBack}
+        />
+      )}
     </div>
   )
 }

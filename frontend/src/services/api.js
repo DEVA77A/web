@@ -107,17 +107,64 @@ export async function getUserProfile(userId) {
   }
 }
 
-export async function updateUserProfile(userId, { score, accuracy, username }) {
+// Get full player stats by username (aggregates from Score collection)
+export async function getPlayerStats(username) {
+  try {
+    const timestamp = Date.now()
+    const res = await fetch(buildUrl(`/api/profile/stats/${encodeURIComponent(username)}?_t=${timestamp}`), {
+      cache: 'no-cache',
+      headers: { 'Cache-Control': 'no-cache' }
+    })
+    if (!res.ok) throw new Error('Failed to fetch player stats')
+    return await res.json()
+  } catch (err) {
+    console.warn('getPlayerStats failed', err)
+    return null
+  }
+}
+
+export async function updateUserProfile(userId, { score, accuracy, username, newUsername }) {
   try {
     const res = await fetch(buildUrl(`/api/profile/${encodeURIComponent(userId)}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, accuracy, username })
+      body: JSON.stringify({ score, accuracy, username, newUsername })
     })
     if (!res.ok) throw new Error('Failed to update profile')
     return await res.json()
   } catch (err) {
     console.warn('updateUserProfile failed', err)
+    return null
+  }
+}
+
+export async function checkUsernameAvailable(username) {
+  try {
+    const res = await fetch(buildUrl(`/api/profile/check-username/${encodeURIComponent(username)}`), {
+      cache: 'no-cache',
+      headers: { 'Cache-Control': 'no-cache' }
+    })
+    if (!res.ok) throw new Error('Failed to check username')
+    const data = await res.json()
+    return data.available
+  } catch (err) {
+    console.warn('checkUsernameAvailable failed', err)
+    // Return true to allow proceeding if check fails
+    return true
+  }
+}
+
+export async function updateUserBio(userId, bio) {
+  try {
+    const res = await fetch(buildUrl(`/api/profile/${encodeURIComponent(userId)}/bio`), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bio })
+    })
+    if (!res.ok) throw new Error('Failed to update bio')
+    return await res.json()
+  } catch (err) {
+    console.warn('updateUserBio failed', err)
     return null
   }
 }

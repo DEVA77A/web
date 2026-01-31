@@ -62,6 +62,7 @@ if (useDb) {
 	const UserProfileSchema = new mongoose.Schema({
 		userId: { type: String, required: true, unique: true, index: true },
 		username: { type: String, required: true },
+		bio: { type: String, default: '', maxlength: 200 },
 		highestScore: { type: Number, default: 0 },
 		totalGames: { type: Number, default: 0 },
 		totalAccuracy: { type: Number, default: 0 },
@@ -157,6 +158,103 @@ if (useDb) {
 		}
 	}
 
+	// Get player stats by username (aggregates from Score collection for viewing any player)
+	app.get('/api/profile/stats/:username', async (req, res) => {
+		try {
+			const { username } = req.params
+			if (!username) return res.status(400).json({ error: 'username is required' })
+			
+			// Get all scores for this player by name (case-insensitive)
+			const scores = await ScoreModel.find({ 
+				name: { $regex: new RegExp(`^${username}$`, 'i') }
+			}).sort({ score: -1 }).lean()
+			
+			// Calculate stats from scores
+			const gamesPlayed = scores.length
+			const highestScore = gamesPlayed > 0 ? Math.max(...scores.map(s => s.score || 0)) : 0
+			const totalAccuracy = scores.reduce((sum, s) => sum + (s.accuracy || 0), 0)
+			const avgAccuracy = gamesPlayed > 0 ? Math.round(totalAccuracy / gamesPlayed) : 0
+			
+			// Try to get profile data for bio and login streak
+			let profile = await UserProfile.findOne({ 
+				username: { $regex: new RegExp(`^${username}$`, 'i') }
+			})
+			
+			if (!profile) {
+				// Try by userId
+				profile = await UserProfile.findOne({ userId: username })
+			}
+			
+			res.json({
+				userId: profile?.userId || username,
+				username: profile?.username || username,
+				bio: profile?.bio || '',
+				highestScore: Math.max(highestScore, profile?.highestScore || 0),
+				totalGames: gamesPlayed,
+				gamesPlayed: gamesPlayed,
+				totalAccuracy: totalAccuracy,
+				avgAccuracy: avgAccuracy,
+				loginStreak: profile?.loginStreak || 0,
+				lastLogin: profile?.lastLogin || null,
+				firstLogin: profile?.firstLogin || null
+			})
+		} catch (err) {
+			console.error('getPlayerStats error:', err)
+			res.status(500).json({ error: 'Could not fetch player stats' })
+		}
+	})
+
+	// Check if username is available
+	app.get('/api/profile/check-username/:username', async (req, res) => {
+		try {
+			const { username } = req.params
+			if (!username) return res.status(400).json({ error: 'username is required', available: false })
+			
+			const existingProfile = await UserProfile.findOne({ 
+				username: { $regex: new RegExp(`^${username}$`, 'i') }
+			})
+			
+			res.json({ available: !existingProfile, username })
+		} catch (err) {
+			console.error('checkUsernameAvailable error:', err)
+			res.status(500).json({ error: 'Could not check username', available: false })
+		}
+	})
+
+	// Update user bio
+	app.put('/api/profile/:userId/bio', async (req, res) => {
+		try {
+			const { userId } = req.params
+			const { bio } = req.body || {}
+			
+			if (!userId) return res.status(400).json({ error: 'userId is required' })
+			
+			let profile = await UserProfile.findOne({ userId })
+			
+			if (!profile) {
+				profile = await UserProfile.create({
+					userId,
+					username: userId,
+					bio: bio || '',
+					highestScore: 0,
+					totalGames: 0,
+					totalAccuracy: 0,
+					gamesPlayed: 0,
+					loginStreak: 0,
+					firstLogin: new Date()
+				})
+			} else {
+				profile.bio = bio || ''
+				await profile.save()
+			}
+			
+			res.json(profile)
+		} catch (err) {
+			console.error('updateUserBio error:', err)
+			res.status(500).json({ error: 'Could not update bio' })
+		}
+	})
+
 	// Get user profile
 	app.get('/api/profile/:userId', async (req, res) => {
 		try {
@@ -189,16 +287,29 @@ if (useDb) {
 	app.put('/api/profile/:userId', async (req, res) => {
 		try {
 			const { userId } = req.params
-			const { score, accuracy, username } = req.body || {}
+			const { score, accuracy, username, newUsername } = req.body || {}
 			
 			if (!userId) return res.status(400).json({ error: 'userId is required' })
+			
+			// If changing username, check if new username is available
+			if (newUsername) {
+				const existingProfile = await UserProfile.findOne({ 
+					username: { $regex: new RegExp(`^${newUsername}$`, 'i') },
+					userId: { $ne: userId }
+				})
+				
+				if (existingProfile) {
+					return res.status(400).json({ error: 'Username already taken' })
+				}
+			}
 			
 			let profile = await UserProfile.findOne({ userId })
 			
 			if (!profile) {
 				profile = await UserProfile.create({
 					userId,
-					username: username || userId,
+					username: newUsername || username || userId,
+					bio: '',
 					highestScore: score || 0,
 					totalGames: 1,
 					totalAccuracy: accuracy || 0,
@@ -208,6 +319,11 @@ if (useDb) {
 					firstLogin: new Date()
 				})
 			} else {
+				// Update username if provided
+				if (newUsername) {
+					profile.username = newUsername
+				}
+				
 				if (score && score > profile.highestScore) {
 					profile.highestScore = score
 				}
