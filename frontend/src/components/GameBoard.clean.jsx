@@ -158,11 +158,11 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
   const activatePower = useCallback(() => {
     if (!currentPower || isPaused || isIntermission) return
     const { type, label, icon, color } = currentPower
-    
+
     // Show centered skill activation animation
     setSkillActivation({ icon, label, color })
-    setTimeout(() => setSkillActivation(null), 1200)
-    
+    setTimeout(() => setSkillActivation(null), 700)
+
     setCurrentPower(null)
 
     if (type === 'freeze') {
@@ -350,7 +350,7 @@ const GameBoard = ({ onGameOver = () => { }, onExit = () => { } }) => {
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input ref={inputRef} value={input} onChange={handleChange} onKeyDown={handleKeyDown} placeholder={currentPower ? `READY: ${currentPower.icon} - Tap to Use!` : "Type and hit Enter"} className="flex-1 px-4 py-3 rounded bg-transparent border border-white/10 focus:border-blue-500 transition-colors" autoFocus autoComplete="off" spellCheck={false} autoCapitalize="none" aria-label="Type the falling word" disabled={isPaused || isIntermission} />
           {currentPower && (
-            <button 
+            <button
               type="button"
               onClick={handleMobileSkillClick}
               onTouchEnd={handleMobileSkillClick}

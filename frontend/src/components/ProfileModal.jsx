@@ -7,8 +7,8 @@ const ProfileModal = () => {
   const userId = user?.name || user
   const profile = getProfile(userId)
   const badge = getBadge(profile.loginStreak)
-  const avgAccuracy = profile.gamesPlayed > 0 
-    ? Math.round(profile.totalAccuracy / profile.gamesPlayed) 
+  const avgAccuracy = profile.gamesPlayed > 0
+    ? Math.round(profile.totalAccuracy / profile.gamesPlayed)
     : 0
 
   if (!user) return null
@@ -32,7 +32,7 @@ const ProfileModal = () => {
           transition: 'all 0.3s ease',
           position: 'relative',
           fontSize: '1.5rem',
-          animation: 'profile-glow 3s ease-in-out infinite'
+          /* animation: 'profile-glow 3s ease-in-out infinite' */
         }}
         title="View Profile"
       >
@@ -128,8 +128,8 @@ const ProfileModal = () => {
                 </div>
               </div>
               {badge && (
-                <div 
-                  style={{ 
+                <div
+                  style={{
                     textAlign: 'center',
                     padding: '16px',
                     background: `linear-gradient(135deg, ${badge.color}20, ${badge.color}10)`,
@@ -138,16 +138,16 @@ const ProfileModal = () => {
                     minWidth: '120px'
                   }}
                 >
-                  <div style={{ 
-                    fontSize: '3rem', 
+                  <div style={{
+                    fontSize: '3rem',
                     marginBottom: '8px',
                     filter: `drop-shadow(0 0 15px ${badge.color})`,
                     animation: 'badge-float 3s ease-in-out infinite'
                   }}>
                     {badge.emoji}
                   </div>
-                  <div style={{ 
-                    fontSize: '0.85rem', 
+                  <div style={{
+                    fontSize: '0.85rem',
                     fontWeight: 'bold',
                     color: badge.color,
                     textTransform: 'uppercase',
@@ -164,96 +164,92 @@ const ProfileModal = () => {
             </div>
 
             {/* Stats Grid */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
               gap: '16px',
               marginBottom: '24px'
             }}>
               <div className="stat-card" style={{
-                background: 'rgba(96, 165, 250, 0.15)',
+                background: 'rgba(15, 23, 42, 0.8)',
                 padding: '20px',
                 borderRadius: '12px',
-                border: '2px solid rgba(96, 165, 250, 0.3)',
+                border: '1px solid rgba(148, 163, 184, 0.1)',
                 textAlign: 'center',
                 transition: 'all 0.3s ease'
               }}>
-                <div style={{ 
-                  fontSize: '2.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#60a5fa',
-                  marginBottom: '8px',
-                  textShadow: '0 0 15px #60a5fa'
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  color: '#f8fafc',
+                  marginBottom: '8px'
                 }}>
                   {profile.highestScore}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '500' }}>
+                <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Highest Score
                 </div>
               </div>
 
               <div className="stat-card" style={{
-                background: 'rgba(34, 197, 94, 0.15)',
+                background: 'rgba(15, 23, 42, 0.8)',
                 padding: '20px',
                 borderRadius: '12px',
-                border: '2px solid rgba(34, 197, 94, 0.3)',
+                border: '1px solid rgba(148, 163, 184, 0.1)',
                 textAlign: 'center',
                 transition: 'all 0.3s ease'
               }}>
-                <div style={{ 
-                  fontSize: '2.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#22c55e',
-                  marginBottom: '8px',
-                  textShadow: '0 0 15px #22c55e'
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  color: '#f8fafc',
+                  marginBottom: '8px'
                 }}>
                   {avgAccuracy}%
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '500' }}>
+                <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Avg Accuracy
                 </div>
               </div>
 
               <div className="stat-card" style={{
-                background: 'rgba(168, 85, 247, 0.15)',
+                background: 'rgba(15, 23, 42, 0.8)',
                 padding: '20px',
                 borderRadius: '12px',
-                border: '2px solid rgba(168, 85, 247, 0.3)',
+                border: '1px solid rgba(148, 163, 184, 0.1)',
                 textAlign: 'center',
                 transition: 'all 0.3s ease'
               }}>
-                <div style={{ 
-                  fontSize: '2.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#a855f7',
-                  marginBottom: '8px',
-                  textShadow: '0 0 15px #a855f7'
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  color: '#f8fafc',
+                  marginBottom: '8px'
                 }}>
                   {profile.totalGames}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '500' }}>
+                <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Games Played
                 </div>
               </div>
 
               <div className="stat-card" style={{
-                background: 'rgba(251, 191, 36, 0.15)',
+                background: 'rgba(15, 23, 42, 0.8)',
                 padding: '20px',
                 borderRadius: '12px',
-                border: '2px solid rgba(251, 191, 36, 0.3)',
+                border: '1px solid rgba(148, 163, 184, 0.1)',
                 textAlign: 'center',
                 transition: 'all 0.3s ease'
               }}>
-                <div style={{ 
-                  fontSize: '2.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#fbbf24',
-                  marginBottom: '8px',
-                  textShadow: '0 0 15px #fbbf24'
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  color: '#f8fafc',
+                  marginBottom: '8px'
                 }}>
                   {profile.loginStreak}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '500' }}>
+                <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Login Streak
                 </div>
               </div>
@@ -261,32 +257,35 @@ const ProfileModal = () => {
 
             {/* Progress to Next Badge */}
             {profile.loginStreak < 1000 && (
-              <div style={{ 
-                padding: '16px', 
+              <div style={{
+                padding: '16px',
                 background: 'rgba(96, 165, 250, 0.08)',
                 borderRadius: '12px',
                 textAlign: 'center',
                 fontSize: '0.95rem',
-                color: '#94a3b8',
-                border: '1px solid rgba(96, 165, 250, 0.2)'
+                color: '#cbd5e1',
+                border: '1px solid rgba(96, 165, 250, 0.2)',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '1px'
               }}>
                 {profile.loginStreak >= 500 ? (
-                  <><span style={{ fontSize: '1.2rem' }}>🎯</span> {1000 - profile.loginStreak} days until Grand Master! <span style={{ fontSize: '1.2rem' }}>👑</span></>
+                  <><span style={{ fontSize: '1.2rem' }}>🎯</span> <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{1000 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>GRAND MASTER</span>! <span style={{ fontSize: '1.2rem' }}>👑</span></>
                 ) : profile.loginStreak >= 100 ? (
-                  <><span style={{ fontSize: '1.2rem' }}>⚡</span> {500 - profile.loginStreak} days until Legendary! <span style={{ fontSize: '1.2rem' }}>⭐</span></>
+                  <><span style={{ fontSize: '1.2rem' }}>⚡</span> <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{500 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>LEGENDARY</span>! <span style={{ fontSize: '1.2rem' }}>⭐</span></>
                 ) : profile.loginStreak >= 30 ? (
-                  <><span style={{ fontSize: '1.2rem' }}>💪</span> {100 - profile.loginStreak} days until Elite! <span style={{ fontSize: '1.2rem' }}>💎</span></>
+                  <><span style={{ fontSize: '1.2rem' }}>💪</span> <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{100 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>ELITE</span>! <span style={{ fontSize: '1.2rem' }}>💎</span></>
                 ) : profile.loginStreak >= 7 ? (
-                  <><span style={{ fontSize: '1.2rem' }}>🔥</span> {30 - profile.loginStreak} days until Veteran!</>
+                  <><span style={{ fontSize: '1.2rem' }}>🔥</span> <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{30 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>VETERAN</span>!</>
                 ) : (
-                  <><span style={{ fontSize: '1.2rem' }}>✨</span> {7 - profile.loginStreak} days until Rising Star!</>
+                  <><span style={{ fontSize: '1.2rem' }}>✨</span> <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{7 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>RISING STAR</span>!</>
                 )}
               </div>
             )}
 
             {profile.loginStreak >= 1000 && (
-              <div style={{ 
-                padding: '20px', 
+              <div style={{
+                padding: '20px',
                 background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1))',
                 borderRadius: '12px',
                 textAlign: 'center',

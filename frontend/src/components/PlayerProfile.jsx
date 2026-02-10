@@ -4,8 +4,8 @@ import { getProfile, getBadge } from '../utils/storage.js'
 const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }) => {
   const profile = getProfile(userId)
   const badge = getBadge(profile.loginStreak)
-  const avgAccuracy = profile.gamesPlayed > 0 
-    ? Math.round(profile.totalAccuracy / profile.gamesPlayed) 
+  const avgAccuracy = profile.gamesPlayed > 0
+    ? Math.round(profile.totalAccuracy / profile.gamesPlayed)
     : 0
 
   const handleClick = (e) => {
@@ -18,7 +18,7 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
 
   if (compact) {
     return (
-      <div 
+      <div
         className={`player-profile-compact ${isClickable ? 'cursor-pointer hover:text-blue-400 transition-colors' : ''}`}
         style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
         onClick={handleClick}
@@ -28,10 +28,10 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
       >
         <span className={isClickable ? 'underline-offset-2 hover:underline' : ''}>{userId}</span>
         {badge && (
-          <span 
-            className="player-badge-compact" 
+          <span
+            className="player-badge-compact"
             title={`${badge.name} - ${profile.loginStreak} day streak!`}
-            style={{ 
+            style={{
               fontSize: '1rem',
               filter: `drop-shadow(0 0 8px ${badge.color})`,
               animation: 'badge-pulse 2s ease-in-out infinite'
@@ -56,9 +56,9 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
           </div>
         </div>
         {badge && (
-          <div 
-            className="player-badge-large" 
-            style={{ 
+          <div
+            className="player-badge-large"
+            style={{
               textAlign: 'center',
               padding: '12px',
               background: `linear-gradient(135deg, ${badge.color}20, ${badge.color}10)`,
@@ -67,16 +67,16 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
               minWidth: '100px'
             }}
           >
-            <div style={{ 
-              fontSize: '2.5rem', 
+            <div style={{
+              fontSize: '2.5rem',
               marginBottom: '4px',
               filter: `drop-shadow(0 0 12px ${badge.color})`,
               animation: 'badge-float 3s ease-in-out infinite'
             }}>
               {badge.emoji}
             </div>
-            <div style={{ 
-              fontSize: '0.75rem', 
+            <div style={{
+              fontSize: '0.75rem',
               fontWeight: 'bold',
               color: badge.color,
               textTransform: 'uppercase',
@@ -91,24 +91,23 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
         )}
       </div>
 
-      <div className="profile-stats-grid" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-        gap: '16px' 
+      <div className="profile-stats-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+        gap: '16px'
       }}>
         <div className="stat-card" style={{
-          background: 'rgba(96, 165, 250, 0.1)',
+          background: 'rgba(15, 23, 42, 0.8)',
           padding: '16px',
           borderRadius: '8px',
-          border: '1px solid rgba(96, 165, 250, 0.2)',
+          border: '1px solid rgba(148, 163, 184, 0.1)',
           textAlign: 'center'
         }}>
-          <div className="stat-value" style={{ 
-            fontSize: '2rem', 
-            fontWeight: 'bold', 
-            color: '#60a5fa',
-            marginBottom: '4px',
-            textShadow: '0 0 10px #60a5fa'
+          <div className="stat-value" style={{
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            color: '#f8fafc',
+            marginBottom: '4px'
           }}>
             {profile.highestScore}
           </div>
@@ -118,18 +117,17 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
         </div>
 
         <div className="stat-card" style={{
-          background: 'rgba(34, 197, 94, 0.1)',
+          background: 'rgba(15, 23, 42, 0.8)',
           padding: '16px',
           borderRadius: '8px',
-          border: '1px solid rgba(34, 197, 94, 0.2)',
+          border: '1px solid rgba(148, 163, 184, 0.1)',
           textAlign: 'center'
         }}>
-          <div className="stat-value" style={{ 
-            fontSize: '2rem', 
-            fontWeight: 'bold', 
-            color: '#22c55e',
-            marginBottom: '4px',
-            textShadow: '0 0 10px #22c55e'
+          <div className="stat-value" style={{
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            color: '#f8fafc',
+            marginBottom: '4px'
           }}>
             {avgAccuracy}%
           </div>
@@ -139,18 +137,17 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
         </div>
 
         <div className="stat-card" style={{
-          background: 'rgba(168, 85, 247, 0.1)',
+          background: 'rgba(15, 23, 42, 0.8)',
           padding: '16px',
           borderRadius: '8px',
-          border: '1px solid rgba(168, 85, 247, 0.2)',
+          border: '1px solid rgba(148, 163, 184, 0.1)',
           textAlign: 'center'
         }}>
-          <div className="stat-value" style={{ 
-            fontSize: '2rem', 
-            fontWeight: 'bold', 
-            color: '#a855f7',
-            marginBottom: '4px',
-            textShadow: '0 0 10px #a855f7'
+          <div className="stat-value" style={{
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            color: '#f8fafc',
+            marginBottom: '4px'
           }}>
             {profile.totalGames}
           </div>
@@ -160,18 +157,17 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
         </div>
 
         <div className="stat-card" style={{
-          background: 'rgba(251, 191, 36, 0.1)',
+          background: 'rgba(15, 23, 42, 0.8)',
           padding: '16px',
           borderRadius: '8px',
-          border: '1px solid rgba(251, 191, 36, 0.2)',
+          border: '1px solid rgba(148, 163, 184, 0.1)',
           textAlign: 'center'
         }}>
-          <div className="stat-value" style={{ 
-            fontSize: '2rem', 
-            fontWeight: 'bold', 
-            color: '#fbbf24',
-            marginBottom: '4px',
-            textShadow: '0 0 10px #fbbf24'
+          <div className="stat-value" style={{
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            color: '#f8fafc',
+            marginBottom: '4px'
           }}>
             {profile.loginStreak}
           </div>
@@ -182,9 +178,9 @@ const PlayerProfile = ({ userId, compact = false, onClick, isClickable = false }
       </div>
 
       {profile.loginStreak < 1000 && (
-        <div style={{ 
-          marginTop: '16px', 
-          padding: '12px', 
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
           background: 'rgba(96, 165, 250, 0.05)',
           borderRadius: '8px',
           textAlign: 'center',
