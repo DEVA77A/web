@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getUser, getProfile, getBadge, removeUser } from '../utils/storage.js'
 import { getUserProfile } from '../services/api.js'
-import '../styles/Animations.css'
+import ShowcaseCard from '../components/ui/ShowcaseCard.jsx'
+import ShowcaseButton from '../components/ui/ShowcaseButton.jsx'
 
 const ProfilePage = () => {
   const navigate = useNavigate()
@@ -16,11 +17,9 @@ const ProfilePage = () => {
     ? Math.round(profile.totalAccuracy / profile.gamesPlayed)
     : 0
 
-  // Use profile username if available, otherwise fall back to user name
   const displayName = profile?.username || username
 
   useEffect(() => {
-    // Fetch profile from backend
     const fetchProfile = async () => {
       setLoading(true)
       try {
@@ -28,7 +27,6 @@ const ProfilePage = () => {
         if (backendProfile) {
           setProfile(backendProfile)
         } else {
-          // Fallback to local profile
           setProfile(getProfile(userId))
         }
       } catch (err) {
@@ -41,14 +39,11 @@ const ProfilePage = () => {
 
     if (userId && userId !== 'Guest') {
       fetchProfile()
-
-      // Refresh profile when page becomes visible
       const handleVisibilityChange = () => {
         if (!document.hidden && userId && userId !== 'Guest') {
           fetchProfile()
         }
       }
-
       document.addEventListener('visibilitychange', handleVisibilityChange)
       return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
     } else {
@@ -62,280 +57,118 @@ const ProfilePage = () => {
   }
 
   return (
-    <>
-      <div className="cyber-grid"></div>
-      <div className="particles-bg">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 8}s`,
-              animationDuration: `${8 + Math.random() * 4}s`
-            }}
-          />
-        ))}
-      </div>
+    <div className="container-xl py-20 flex flex-col items-center">
+      <div className="w-full max-w-5xl">
+        <ShowcaseCard className="relative overflow-hidden">
+          {/* Header */}
+          <div className="flex flex-col items-center gap-6 mb-12 border-b border-white/5 pb-8 relative z-10">
+            {/* Badge in top-right corner */}
+            {badge && (
+              <div className="absolute top-0 right-0 text-center px-4 py-3 bg-white/5 rounded-2xl border border-white/10">
+                <div className="text-4xl mb-1 animate-pulse">
+                  {badge.emoji}
+                </div>
+                <div className="text-xs font-bold uppercase tracking-wider" style={{ color: badge.color }}>
+                  {badge.name}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">{profile.loginStreak} days</div>
+              </div>
+            )}
 
-      <div className="page-center">
-        <div className="container">
-          <div className="glass-card">
-            {/* Header with Navigation */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <img src="/logo.png" alt="Type Sprint Logo" style={{ width: 56, height: 'auto' }} />
-                <div>
-                  <h2 className="hero-title gtahero" style={{ margin: 0, fontSize: '2rem' }}>Player Profile</h2>
-                  <div className="hero-sub">Your stats & achievements</div>
+            <div className="flex items-center gap-6">
+              <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-1 rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+                <div className="bg-black/80 p-4 rounded-xl">
+                  <img src="/logo.png" alt="Logo" className="w-16 h-16" />
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <Link to="/dashboard" className="btn">Dashboard</Link>
-                <Link to="/game" className="btn primary">Play Game</Link>
-                <Link to="/leaderboard" className="btn">Leaderboard</Link>
-                <button className="btn" onClick={handleLogout}>Logout</button>
+              <div className="text-center">
+                <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-tight mb-2">
+                  <span className="showcase-text-gradient">{displayName}</span>
+                </h1>
+                <div className="text-gray-400 tracking-[0.2em] uppercase text-sm">Type Sprint Champion</div>
               </div>
-            </div>
-
-            {/* Profile Content */}
-            <div style={{ marginTop: '2rem' }}>
-              {loading ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem', gap: '12px' }}>
-                  <div className="loading-spinner"></div>
-                  <span className="muted">Loading profile...</span>
-                </div>
-              ) : (
-                <>
-                  {/* Player Header with Badge */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '24px' }}>
-                    <div style={{ flex: 1 }}>
-                      <h1 className="neon-text" style={{ fontSize: '3rem', margin: 0, marginBottom: '8px' }}>
-                        {displayName}
-                      </h1>
-                      <div style={{ fontSize: '1.1rem', color: '#94a3b8' }}>
-                        Type Sprint Champion
-                      </div>
-                    </div>
-
-                    {badge && (
-                      <div
-                        style={{
-                          textAlign: 'center',
-                          padding: '24px',
-                          background: `linear-gradient(135deg, ${badge.color}30, ${badge.color}15)`,
-                          borderRadius: '20px',
-                          border: `3px solid ${badge.color}60`,
-                          minWidth: '160px',
-                          boxShadow: `0 0 40px ${badge.color}40`
-                        }}
-                      >
-                        <div style={{
-                          fontSize: '4rem',
-                          marginBottom: '12px',
-                          filter: `drop-shadow(0 0 20px ${badge.color})`,
-                          animation: 'badge-float 3s ease-in-out infinite'
-                        }}>
-                          {badge.emoji}
-                        </div>
-                        <div style={{
-                          fontSize: '1.1rem',
-                          fontWeight: 'bold',
-                          color: badge.color,
-                          textTransform: 'uppercase',
-                          letterSpacing: '1px',
-                          marginBottom: '8px',
-                          textShadow: `0 0 15px ${badge.color}`
-                        }}>
-                          {badge.name}
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
-                          {profile.loginStreak} day streak
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '24px',
-                    marginBottom: '32px'
-                  }}>
-                    <div className="stat-card" style={{
-                      background: 'rgba(15, 23, 42, 0.8)',
-                      padding: '32px 24px',
-                      borderRadius: '16px',
-                      border: '2px solid rgba(148, 163, 184, 0.1)',
-                      textAlign: 'center',
-                      transition: 'all 0.3s ease'
-                    }}>
-                      <div style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        🏆 Highest Score
-                      </div>
-                      <div style={{
-                        fontSize: '3.5rem',
-                        fontWeight: 'bold',
-                        color: '#f8fafc',
-                        lineHeight: 1
-                      }}>
-                        {profile.highestScore}
-                      </div>
-                    </div>
-
-                    <div className="stat-card" style={{
-                      background: 'rgba(15, 23, 42, 0.8)',
-                      padding: '32px 24px',
-                      borderRadius: '16px',
-                      border: '2px solid rgba(148, 163, 184, 0.1)',
-                      textAlign: 'center',
-                      transition: 'all 0.3s ease'
-                    }}>
-                      <div style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        🎯 Avg Accuracy
-                      </div>
-                      <div style={{
-                        fontSize: '3.5rem',
-                        fontWeight: 'bold',
-                        color: '#f8fafc',
-                        lineHeight: 1
-                      }}>
-                        {avgAccuracy}%
-                      </div>
-                    </div>
-
-                    <div className="stat-card" style={{
-                      background: 'rgba(15, 23, 42, 0.8)',
-                      padding: '32px 24px',
-                      borderRadius: '16px',
-                      border: '2px solid rgba(148, 163, 184, 0.1)',
-                      textAlign: 'center',
-                      transition: 'all 0.3s ease'
-                    }}>
-                      <div style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        🎮 Games Played
-                      </div>
-                      <div style={{
-                        fontSize: '3.5rem',
-                        fontWeight: 'bold',
-                        color: '#f8fafc',
-                        lineHeight: 1
-                      }}>
-                        {profile.totalGames}
-                      </div>
-                    </div>
-
-                    <div className="stat-card" style={{
-                      background: 'rgba(15, 23, 42, 0.8)',
-                      padding: '32px 24px',
-                      borderRadius: '16px',
-                      border: '2px solid rgba(148, 163, 184, 0.1)',
-                      textAlign: 'center',
-                      transition: 'all 0.3s ease'
-                    }}>
-                      <div style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        🔥 Login Streak
-                      </div>
-                      <div style={{
-                        fontSize: '3.5rem',
-                        fontWeight: 'bold',
-                        color: '#f8fafc',
-                        lineHeight: 1
-                      }}>
-                        {profile.loginStreak}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Progress to Next Badge */}
-                  {profile.loginStreak < 1000 ? (
-                    <div style={{
-                      padding: '24px',
-                      background: 'rgba(96, 165, 250, 0.1)',
-                      borderRadius: '16px',
-                      textAlign: 'center',
-                      fontSize: '1.1rem',
-                      color: '#cbd5e1',
-                      border: '2px solid rgba(96, 165, 250, 0.3)',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px'
-                    }}>
-                      {profile.loginStreak >= 500 ? (
-                        <div>
-                          <span style={{ fontSize: '1.5rem' }}>🎯</span>
-                          <div style={{ marginTop: '8px' }}>
-                            <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{1000 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>GRAND MASTER</span>!
-                            <span style={{ fontSize: '1.5rem', marginLeft: '8px' }}>👑</span>
-                          </div>
-                        </div>
-                      ) : profile.loginStreak >= 100 ? (
-                        <div>
-                          <span style={{ fontSize: '1.5rem' }}>⚡</span>
-                          <div style={{ marginTop: '8px' }}>
-                            <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{500 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>LEGENDARY</span>!
-                            <span style={{ fontSize: '1.5rem', marginLeft: '8px' }}>⭐</span>
-                          </div>
-                        </div>
-                      ) : profile.loginStreak >= 30 ? (
-                        <div>
-                          <span style={{ fontSize: '1.5rem' }}>💪</span>
-                          <div style={{ marginTop: '8px' }}>
-                            <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{100 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>ELITE</span>!
-                            <span style={{ fontSize: '1.5rem', marginLeft: '8px' }}>💎</span>
-                          </div>
-                        </div>
-                      ) : profile.loginStreak >= 7 ? (
-                        <div>
-                          <span style={{ fontSize: '1.5rem' }}>🔥</span>
-                          <div style={{ marginTop: '8px' }}>
-                            <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{30 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>VETERAN</span>!
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <span style={{ fontSize: '1.5rem' }}>✨</span>
-                          <div style={{ marginTop: '8px' }}>
-                            <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>{7 - profile.loginStreak}</span> DAYS UNTIL <span style={{ color: '#f8fafc', fontWeight: 'bold' }}>RISING STAR</span>!
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{
-                      padding: '32px',
-                      background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 215, 0, 0.15))',
-                      borderRadius: '20px',
-                      textAlign: 'center',
-                      fontSize: '1.4rem',
-                      color: '#ffd700',
-                      border: '3px solid rgba(255, 215, 0, 0.5)',
-                      fontWeight: 'bold',
-                      animation: 'glow-pulse 2s ease-in-out infinite',
-                      boxShadow: '0 0 40px rgba(255, 215, 0, 0.3)'
-                    }}>
-                      <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🏆</div>
-                      You've achieved Grand Master status!
-                      <div style={{ fontSize: '3rem', marginTop: '12px' }}>🏆</div>
-                    </div>
-                  )}
-
-                  {/* Back to Action */}
-                  <div style={{ marginTop: '32px', textAlign: 'center' }}>
-                    <Link to="/game" className="btn primary" style={{ fontSize: '1.2rem', padding: '16px 48px' }}>
-                      Start Playing
-                    </Link>
-                  </div>
-                </>
-              )}
             </div>
           </div>
-        </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center p-20 gap-4">
+              <div className="loader-spinner"></div>
+              <span className="text-gray-500 uppercase tracking-widest text-sm">Syncing Profile...</span>
+            </div>
+          ) : (
+            <div className="relative z-10">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <StatBox label="Highest Score" value={profile.highestScore} icon="🏆" color="text-yellow-400" />
+                <StatBox label="Avg Accuracy" value={`${avgAccuracy}%`} icon="🎯" color="text-cyan-400" />
+                <StatBox label="Games Played" value={profile.totalGames} icon="🎮" color="text-purple-400" />
+                <StatBox label="Login Streak" value={profile.loginStreak} icon="🔥" color="text-orange-400" />
+              </div>
+
+              {/* Progress Bar / Next Rank */}
+              <div className="bg-black/40 rounded-xl p-8 border border-white/5 text-center">
+                {profile.loginStreak < 1000 ? (
+                  <div>
+                    {GetNextRankProgress(profile.loginStreak)}
+                  </div>
+                ) : (
+                  <div className="text-yellow-400 font-bold text-xl uppercase tracking-widest animate-pulse">
+                    🏆 Grand Master Status Achieved 🏆
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </ShowcaseCard>
       </div>
-    </>
+    </div>
   )
 }
+
+const StatBox = ({ label, value, icon, color }) => (
+  <div className="bg-white/5 border border-white/5 p-6 rounded-xl hover:bg-white/10 hover:border-white/10 transition-colors group">
+    <div className="flex justify-between items-start mb-4">
+      <div className="text-gray-500 text-xs uppercase tracking-widest font-bold">{label}</div>
+      <div className="text-2xl grayscale group-hover:grayscale-0 transition-all">{icon}</div>
+    </div>
+    <div className={`text-3xl font-bold font-mono ${color}`}>
+      {value}
+    </div>
+  </div>
+)
+
+const GetNextRankProgress = (streak) => {
+  let target = 7;
+  let rank = "Rising Star";
+  let icon = "✨";
+  let remaining = 0;
+
+  if (streak >= 500) { target = 1000; rank = "Grand Master"; icon = "👑"; }
+  else if (streak >= 100) { target = 500; rank = "Legendary"; icon = "⭐"; }
+  else if (streak >= 30) { target = 100; rank = "Elite"; icon = "💎"; }
+  else if (streak >= 7) { target = 30; rank = "Veteran"; icon = "🔥"; }
+
+  remaining = target - streak;
+  const progress = Math.min(100, (streak / target) * 100);
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="flex justify-between text-sm text-gray-400 uppercase tracking-widest mb-4">
+        <span>Current Progress</span>
+        <span className="text-cyan-400 font-bold">{streak} / {target} Days</span>
+      </div>
+      <div className="h-4 bg-gray-800 rounded-full overflow-hidden mb-6 relative">
+        <div
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-600 to-blue-500 rounded-full"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <div className="text-lg">
+        <span className="font-bold text-white">{remaining}</span> days until <span className="font-bold text-cyan-400">{rank}</span> {icon}
+      </div>
+    </div>
+  )
+}
+
 
 export default ProfilePage

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { getPlayerStats } from '../services/api.js'
 import { getBadge } from '../utils/storage.js'
+import ShowcaseCard from './ui/ShowcaseCard.jsx'
+import ShowcaseButton from './ui/ShowcaseButton.jsx'
 
 const OtherPlayerProfileModal = ({ userId, onClose, onBackToDashboard }) => {
   const [profile, setProfile] = useState(null)
@@ -66,222 +68,119 @@ const OtherPlayerProfileModal = ({ userId, onClose, onBackToDashboard }) => {
 
   const badge = profile ? getBadge(profile.loginStreak) : null
   // Use pre-calculated avgAccuracy from server, or calculate if not available
-  const avgAccuracy = profile?.avgAccuracy || (profile && profile.gamesPlayed > 0 
-    ? Math.round(profile.totalAccuracy / profile.gamesPlayed) 
+  const avgAccuracy = profile?.avgAccuracy || (profile && profile.gamesPlayed > 0
+    ? Math.round(profile.totalAccuracy / profile.gamesPlayed)
     : 0)
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/80 backdrop-blur-md z-[10001] flex items-center justify-center p-4"
+    <div
+      className="fixed inset-0 bg-black/90 backdrop-blur-md z-[10001] flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
-        className="glass-card w-full max-w-lg animate-scale-in"
+      <div
+        className="w-full max-w-2xl animate-scale-in"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          animation: 'modalSlideIn 0.3s ease-out',
-          background: 'rgba(15, 23, 42, 0.95)',
-          border: '1px solid rgba(96, 165, 250, 0.3)',
-          boxShadow: '0 0 40px rgba(96, 165, 250, 0.2)'
-        }}
       >
         {loading ? (
-          <div className="p-8 text-center">
-            <div className="loading-spinner mx-auto mb-4"></div>
-            <p className="text-slate-400">Loading profile...</p>
-          </div>
+          <ShowcaseCard>
+            <div className="p-12 text-center">
+              <div className="loading-spinner mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading profile...</p>
+            </div>
+          </ShowcaseCard>
         ) : profile ? (
-          <div className="p-6">
+          <ShowcaseCard className="border-t-4 border-t-cyan-500/50">
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <div className="flex items-start justify-between mb-8 pb-6 border-b border-white/5">
               <div>
-                <h3 className="neon-text" style={{ fontSize: '1.75rem', margin: 0 }}>
-                  {profile.username || userId}
-                </h3>
-                <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>
-                  Player Profile
-                </div>
+                <h2 className="text-4xl font-bold uppercase tracking-wider mb-2">
+                  <span className="showcase-text-gradient">{profile.username || userId}</span>
+                </h2>
+                <p className="text-gray-500 text-sm uppercase tracking-widest">Player Profile</p>
               </div>
               {badge && (
-                <div 
-                  className="player-badge-large" 
-                  style={{ 
-                    textAlign: 'center',
-                    padding: '12px 16px',
-                    background: `linear-gradient(135deg, ${badge.color}20, ${badge.color}10)`,
-                    borderRadius: '12px',
-                    border: `2px solid ${badge.color}40`,
-                    minWidth: '100px'
-                  }}
-                >
-                  <div style={{ 
-                    fontSize: '2.5rem', 
-                    marginBottom: '4px',
-                    filter: `drop-shadow(0 0 12px ${badge.color})`,
-                    animation: 'badge-float 3s ease-in-out infinite'
-                  }}>
+                <div className="text-center px-6 py-4 bg-white/5 rounded-2xl border border-white/10">
+                  <div className="text-5xl mb-2 animate-pulse">
                     {badge.emoji}
                   </div>
-                  <div style={{ 
-                    fontSize: '0.75rem', 
-                    fontWeight: 'bold',
-                    color: badge.color,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}>
+                  <div className="text-xs font-bold uppercase tracking-wider" style={{ color: badge.color }}>
                     {badge.name}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                    {profile.loginStreak} days
-                  </div>
+                  <div className="text-xs text-gray-500 mt-1">{profile.loginStreak} days</div>
                 </div>
               )}
             </div>
 
             {/* Bio Section */}
             {profile.bio && (
-              <div style={{
-                padding: '12px 16px',
-                background: 'rgba(148, 163, 184, 0.05)',
-                borderRadius: '8px',
-                marginBottom: '1.5rem',
-                borderLeft: '3px solid #60a5fa'
-              }}>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>Bio</div>
-                <p style={{ margin: 0, color: '#cbd5e1', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              <div className="mb-8 p-4 bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg">
+                <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Bio</div>
+                <p className="text-gray-300 leading-relaxed">
                   {profile.bio}
                 </p>
               </div>
             )}
 
             {/* Stats Grid */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(2, 1fr)', 
-              gap: '12px',
-              marginBottom: '1.5rem'
-            }}>
-              <div style={{
-                background: 'rgba(96, 165, 250, 0.1)',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid rgba(96, 165, 250, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.75rem', 
-                  fontWeight: 'bold', 
-                  color: '#60a5fa',
-                  textShadow: '0 0 10px #60a5fa'
-                }}>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 border border-cyan-500/20 rounded-2xl text-center group hover:border-cyan-500/40 transition-all">
+                <div className="text-4xl font-bold text-cyan-400 mb-2 group-hover:scale-110 transition-transform">
                   {profile.highestScore}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Highest Score
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(34, 197, 94, 0.1)',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid rgba(34, 197, 94, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.75rem', 
-                  fontWeight: 'bold', 
-                  color: '#22c55e',
-                  textShadow: '0 0 10px #22c55e'
-                }}>
+              <div className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/20 rounded-2xl text-center group hover:border-green-500/40 transition-all">
+                <div className="text-4xl font-bold text-green-400 mb-2 group-hover:scale-110 transition-transform">
                   {avgAccuracy}%
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Avg Accuracy
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(168, 85, 247, 0.1)',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid rgba(168, 85, 247, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.75rem', 
-                  fontWeight: 'bold', 
-                  color: '#a855f7',
-                  textShadow: '0 0 10px #a855f7'
-                }}>
+              <div className="p-6 bg-gradient-to-br from-purple-500/10 to-violet-600/10 border border-purple-500/20 rounded-2xl text-center group hover:border-purple-500/40 transition-all">
+                <div className="text-4xl font-bold text-purple-400 mb-2 group-hover:scale-110 transition-transform">
                   {profile.totalGames}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Games Played
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(251, 191, 36, 0.1)',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid rgba(251, 191, 36, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.75rem', 
-                  fontWeight: 'bold', 
-                  color: '#fbbf24',
-                  textShadow: '0 0 10px #fbbf24'
-                }}>
+              <div className="p-6 bg-gradient-to-br from-yellow-500/10 to-orange-600/10 border border-yellow-500/20 rounded-2xl text-center group hover:border-yellow-500/40 transition-all">
+                <div className="text-4xl font-bold text-yellow-400 mb-2 group-hover:scale-110 transition-transform">
                   {profile.loginStreak}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Login Streak
                 </div>
               </div>
             </div>
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button 
-                className="btn"
-                onClick={onClose}
-                style={{ minWidth: '120px' }}
-              >
+            <div className="flex gap-4 justify-center pt-6 border-t border-white/5">
+              <ShowcaseButton onClick={onClose} variant="ghost">
                 Close
-              </button>
+              </ShowcaseButton>
               {onBackToDashboard && (
-                <button 
-                  className="btn primary"
-                  onClick={onBackToDashboard}
-                  style={{ minWidth: '150px' }}
-                >
+                <ShowcaseButton onClick={onBackToDashboard} variant="primary">
                   🏠 Dashboard
-                </button>
+                </ShowcaseButton>
               )}
             </div>
-          </div>
+          </ShowcaseCard>
         ) : (
-          <div className="p-8 text-center">
-            <p className="text-slate-400">Could not load profile</p>
-            <button className="btn mt-4" onClick={onClose}>Close</button>
-          </div>
+          <ShowcaseCard>
+            <div className="p-8 text-center">
+              <p className="text-gray-400 mb-4">Could not load profile</p>
+              <ShowcaseButton onClick={onClose} variant="ghost">Close</ShowcaseButton>
+            </div>
+          </ShowcaseCard>
         )}
       </div>
-
-      <style>{`
-        @keyframes modalSlideIn {
-          from {
-            opacity: 0;
-            transform: scale(0.9) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-      `}</style>
     </div>
   )
 }

@@ -6,13 +6,14 @@ import GamePage from './pages/GamePage.jsx'
 import LeaderboardPage from './pages/LeaderboardPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import NavBar from './components/NavBar.jsx'
+import ShowcaseLayout from './components/ui/ShowcaseLayout.jsx'
 import './index.css'
 import './styles/Animations.css'
 
 // Top-level app: routing wrapped with site chrome (nav + theme)
 const App = () => {
   return (
-    <div className="theme-gtanight">
+    <ShowcaseLayout>
       <NavBar />
       <Routes>
         <Route path="/" element={<LoginPage />} />
@@ -22,7 +23,7 @@ const App = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
+    </ShowcaseLayout>
   )
 }
 

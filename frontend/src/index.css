@@ -2,671 +2,163 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Minimal styles so the app is visible without full Tailwind setup */
+/* 
+  GSAP Showcase Theme 
+  - Deep Space / Cyberpunk aesthetic
+  - High contrast neon accents
+  - Smooth motion
+*/
+
 :root {
-  --bg: #0f1724;
-  --card: #111827;
-  --muted: #94a3b8;
+  /* Core Palette */
+  --bg-deep: #050505;
+  --bg-surface: #0a0a0a;
+  --primary: #00f2ea;
+  /* Cyan/Electric Blue */
+  --secondary: #ff0055;
+  /* Neon Pink */
+  --accent: #7000ff;
+  /* Deep Purple */
+  --text-main: #ffffff;
+  --text-muted: #888888;
+
+  /* Glassmorphism */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Fonts */
+  --font-display: 'Oswald', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
-/* Force a readable text color across the app to avoid accidental dark text on dark backgrounds */
-:root {
-  --app-text: #e6f2ff;
-}
-
+/* Reset & Base */
 html,
-body,
-#root,
-p,
-a,
-span,
-li,
-label,
-input,
-button,
-textarea,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  color: var(--app-text) !important;
-}
-
-::placeholder {
-  color: rgba(230, 242, 255, 0.65) !important;
-}
-
-/* Ensure falling words are always visible above other elements */
-.falling-word {
-  color: var(--app-text) !important;
-  z-index: 9999 !important;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), 0 0 18px rgba(96, 165, 250, 0.08) !important;
-}
-
-/* Keep primary button text dark to contrast its light gradient background */
-.btn.primary {
-  color: #041724 !important
-}
-
-html,
-body,
-#root {
-  height: 100%;
-}
-
-body {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin: 0;
-  background: linear-gradient(180deg, var(--bg), #071024);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, 'Helvetica Neue', Arial
 }
 
-.min-h-screen {
-  min-height: 100vh
-}
-
-.neon-blue {
-  color: #60a5fa !important
-}
-
-.neon-green {
-  color: #34d399 !important
-}
-
-.neon-pink {
-  color: #fb7185 !important
-}
-
-.bg-card {
-  background: rgba(17, 24, 39, 0.55)
-}
-
-.btn {
-  padding: .6rem 1rem;
-  border-radius: .5rem
-}
-
-.container {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 1rem
-}
-
-/* Falling word styles */
-.falling-word {
-  display: inline-block;
-  /* taller (vertical) and slimmer (horizontal) */
-  padding: 0.65rem 0.32rem;
-  background: rgba(8, 12, 20, 0.88);
-  border: 1px solid rgba(96, 165, 250, 0.18);
-  color: #e6f2ff !important;
-  font-weight: 800;
-  font-size: 1.45rem;
-  line-height: 1.05;
-  border-radius: 8px;
-  text-shadow: 0 0 10px rgba(96, 165, 250, 0.22), 0 0 20px rgba(96, 165, 250, 0.10);
-  box-shadow: 0 8px 30px rgba(1, 6, 23, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  will-change: transform, opacity, filter;
-  transform-origin: center;
-  white-space: nowrap;
-  min-width: 40px;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
-/* subtle motion-blur effect when falling (enabled via GSAP scale/blur if desired) */
-.falling-word.blur {
-  filter: none !important
-}
-
-/* motion-blur helper override: avoid applying CSS blur, animation will manage subtle effects */
-.falling-word[data-blur='true'] {
-  filter: none !important;
-  transition: transform 0.08s linear;
-}
-
-.glow {
-  box-shadow: 0 6px 30px rgba(96, 165, 250, 0.12), 0 0 40px rgba(96, 165, 250, 0.06);
-}
-
-/* center container for pages */
-.app-shell {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem
-}
-
-/* responsive gameboard */
-.game-area {
-  width: 100%;
-  max-width: 1100px;
-  touch-action: manipulation;
-}
-
-/* Mobile optimizations */
-@media (max-width: 768px) {
-  body {
-    overflow-x: hidden;
-    position: fixed;
-    width: 100%;
-  }
-  
-  .game-page-wrapper {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  
-  .game-container {
-    margin: 0 !important;
-    padding: 0 !important;
-    max-width: 100% !important;
-  }
-  
-  .game-card-wrapper {
-    background: transparent !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  
-  .game-area {
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-    min-height: 100dvh !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 0 !important;
-  }
-  
-  .container {
-    margin: 0 !important;
-    padding: 0 !important;
-    max-width: 100% !important;
-  }
-  
-  .game-bottom-bar {
-    padding-bottom: env(safe-area-inset-bottom, 16px) !important;
-  }
-  
-  .mobile-skill-button {
-    display: flex !important;
-  }
-  
-  .mobile-skill-button-hidden {
-    display: none !important;
-  }
-}
-
-/* Desktop styles */
-@media (min-width: 769px) {
-  .game-page-wrapper {
-    padding: 3rem 1rem;
-  }
-  
-  .game-container {
-    margin: 0 auto;
-  }
-}
-
-/* Hero & CTA */
-.hero-title {
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #cfe9ff;
-  text-shadow: 0 8px 40px rgba(96, 165, 250, 0.08), 0 0 18px rgba(96, 165, 250, 0.06);
-}
-
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  gap: .6rem;
-  padding: .7rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  font-weight: 700
-}
-
-.cta-button:hover {
-  transform: translateY(-3px);
-  transition: all .18s ease
-}
-
-/* page container tweaks */
-.container {
-  max-width: 1100px;
-  margin: 3rem auto;
-  padding: 1.25rem
-}
-
-/* muted text */
-.text-muted {
-  color: var(--muted)
-}
-
-/* small responsive helpers */
-@media (max-width:640px) {
-  .container {
-    padding: 1rem;
-    margin: 1rem
-  }
-}
-
-/* Compatibility helpers for existing markup */
-.page-center {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.card {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
-}
-
-.card.modal {
-  max-width: 520px;
-  width: 100%;
-  padding: 1.5rem
-}
-
-.auth-card {
-  min-width: 320px;
-  max-width: 420px
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(2, 6, 23, 0.6), rgba(2, 6, 23, 0.75));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem
-}
-
-.btn.primary {
-  background: linear-gradient(90deg, #60a5fa, #7dd3fc);
-  color: #041724;
-  font-weight: 800;
-  border: none
-}
-
-.btn.large {
-  padding: 1rem 1.25rem;
-  font-size: 1.05rem
-}
-
-.mt-4 {
-  margin-top: 1rem
-}
-
-.grid {
-  display: grid
-}
-
-.gap-8 {
-  gap: 2rem
-}
-
-.items-center {
-  align-items: center
-}
-
-/* GTA6-inspired neon theme helpers */
-.theme-gtanight {
-  --accent1: #ff3b81;
-  --accent2: #7c5cff;
-  --accent3: #00e5ff;
-  --glass: rgba(255, 255, 255, 0.03);
-}
-
-.gtahero {
-  background: linear-gradient(90deg, var(--accent2), var(--accent1));
+.showcase-text-gradient {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
-  font-family: Oswald, Impact, Arial Black, sans-serif
 }
 
-.glass-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(6px);
-  border-radius: 14px;
-  padding: 1.25rem;
-  box-shadow: 0 12px 40px rgba(2, 6, 23, 0.6)
+/* Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px;
 }
 
-.input {
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Animations */
+.will-change-transform {
+  will-change: transform;
+}
+
+/* Game Specific Overrides */
+.game-area {
+  position: relative;
+  z-index: 10;
+}
+
+.falling-word {
+  position: absolute;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: 0 0 10px var(--primary);
+  user-select: none;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--primary);
+  z-index: 100;
+}
+
+/* Button Reset */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+/* Loader */
+.loader-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Container for standard pages */
+.container-xl {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
   width: 100%;
-  padding: .85rem 1rem;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  color: var(--app-text);
-  font-weight: 700
 }
 
-.label {
-  display: block;
-  margin-bottom: .5rem;
-  font-weight: 700;
-  color: rgba(230, 242, 255, 0.9)
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem
-}
-
-.login-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem
-}
-
-.logo-badge {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent2), var(--accent1));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  color: #041724
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: .5rem
-}
-
-.leaderboard-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem
-}
-
-.leader-list {
-  list-style: none;
-  padding: 0;
-  margin: 0
-}
-
-.leader-row {
-  display: grid;
-  grid-template-columns: 48px 1fr 120px;
-  gap: 1rem;
-  padding: .75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  align-items: center
-}
-
-.leader-row:nth-child(1) {
-  background: linear-gradient(90deg, rgba(124, 92, 255, 0.08), rgba(255, 59, 129, 0.06));
-  border-left: 4px solid var(--accent2)
-}
-
-.leader-row:nth-child(2) {
-  border-left: 4px solid var(--accent1)
-}
-
-.leader-row:nth-child(3) {
-  border-left: 4px solid var(--accent3)
-}
-
-.leader-rank {
-  font-weight: 900;
-  opacity: 0.92
-}
-
-.leader-name {
-  font-weight: 700
-}
-
-.leader-score {
-  font-weight: 900;
-  text-align: right
-}
-
-.hero-sub {
-  color: rgba(230, 242, 255, 0.75)
-}
-
-@media (max-width:640px) {
-  .leader-row {
-    grid-template-columns: 48px 1fr 80px
+@media (max-width: 768px) {
+  .container-xl {
+    padding: 0 1rem;
   }
-
-  .logo-badge {
-    width: 48px;
-    height: 48px
-  }
-
-  .btn {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
-  }
-
-  .container.grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-title {
-    font-size: 1.75rem;
-  }
-
-  /* Game area adjustments for mobile */
-  .game-area {
-    height: 60dvh !important;
-    min-height: 400px !important;
-    max-height: 500px !important;
-    padding: 0.75rem !important;
-    padding-top: 3rem !important;
-    padding-bottom: 5rem !important;
-  }
-
-  /* Game bottom bar (input area) */
-  .game-bottom-bar {
-    padding: 0.75rem !important;
-  }
-
-  .game-bottom-bar form {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .game-bottom-bar input {
-    font-size: 0.9rem;
-    padding: 0.65rem !important;
-  }
-
-  .game-bottom-bar button[type="submit"] {
-    width: 100%;
-    padding: 0.75rem !important;
-  }
-
-  /* Power pill on mobile */
-  .power-pill {
-    min-width: 50px !important;
-    padding: 0.65rem !important;
-  }
-
-  /* Falling words - smaller on mobile */
-  .falling-word {
-    font-size: 1.1rem !important;
-    padding: 0.5rem 0.35rem !important;
-  }
-
-  /* Modals and overlays */
-  .card.modal {
-    max-width: 90vw;
-    padding: 1rem;
-  }
-
-  .overlay {
-    padding: 0.5rem;
-  }
-
-  /* Auth card */
-  .auth-card {
-    min-width: auto;
-    max-width: 100%;
-  }
-
-  /* Glass cards */
-  .glass-card {
-    padding: 1rem;
-  }
-
-  /* Container adjustments */
-  .container {
-    padding: 0.75rem;
-    margin: 1rem auto;
-  }
-
-  .page-center {
-    padding: 0.5rem;
-    min-height: 100vh;
-    padding-top: 0.5rem;
-  }
-  
-  .container {
-    padding: 0.75rem;
-  }
-
-  /* Dashboard buttons */
-  .btn.large {
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-  }
-
-  /* Leaderboard hero */
-  .leaderboard-hero {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  /* Game over modal buttons */
-  .card.modal .btn {
-    margin-left: 0 !important;
-    margin-top: 0.5rem;
-    width: 100%;
-  }
-
-  .card.modal .mt-4 {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  /* Pause menu buttons */
-  .absolute.inset-0 button {
-    width: 90% !important;
-    max-width: 280px !important;
-    font-size: 1rem !important;
-    padding: 0.75rem 1rem !important;
-  }
-
-  /* Intermission screen */
-  .absolute.inset-0 h2 {
-    font-size: 2rem !important;
-  }
-
-  .absolute.inset-0 .text-6xl {
-    font-size: 3rem !important;
-  }
-
-  .absolute.inset-0 .text-xl {
-    font-size: 1rem !important;
-  }
-
-  /* Scoreboard pills */
-  .absolute.top-3 {
-    top: 0.5rem;
-    left: 0.5rem;
-    right: 0.5rem;
-  }
-
-  .absolute.top-3 .flex {
-    gap: 0.35rem;
-  }
-
-  .absolute.top-3 .px-3 {
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
-    font-size: 0.7rem !important;
-  }
-}
-
-/* Extra small phones (iPhone SE, etc.) */
-@media (max-width:375px) {
-  .game-area {
-    height: 55dvh !important;
-    min-height: 350px !important;
-    padding-top: 2.5rem !important;
-    padding-bottom: 4.5rem !important;
-  }
-
-  .falling-word {
-    font-size: 1rem !important;
-    padding: 0.4rem 0.3rem !important;
-  }
-
-  .hero-title {
-    font-size: 1.5rem;
-  }
-
-  .btn {
-    font-size: 0.75rem;
-    padding: 0.45rem 0.65rem;
-  }
-
-  .game-bottom-bar input {
-    font-size: 0.85rem;
-  }
-}
-
-/* Tablet adjustments */
-@media (min-width:641px) and (max-width:1024px) {
-  .game-area {
-    height: 65dvh !important;
-    max-height: 600px !important;
-  }
-
-  .container {
-    padding: 1rem;
-  }
-
-  .btn.large {
-    padding: 0.85rem 1.1rem;
-    font-size: 1rem;
-  }
-}
-
-.teal-glow {
-  box-shadow: 0 0 40px rgba(0, 255, 255, 0.15), 0 0 100px rgba(0, 255, 255, 0.05) !important;
-  border-color: rgba(0, 255, 255, 0.2) !important;
 }

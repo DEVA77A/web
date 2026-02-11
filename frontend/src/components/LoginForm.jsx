@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { setUser } from '../utils/storage.js'
 import { loginUser } from '../services/api.js'
+import ShowcaseButton from './ui/ShowcaseButton.jsx'
 
 const LoginForm = ({ onLogin = () => { } }) => {
   const [name, setName] = useState('')
@@ -24,7 +25,6 @@ const LoginForm = ({ onLogin = () => { } }) => {
       onLogin(user)
     } catch (err) {
       console.warn('Login failed', err)
-      // Show user-friendly error messages
       const errorMsg = err.message || 'Login failed. Please try again.'
       if (errorMsg.includes('already taken') || errorMsg.includes('Username already')) {
         setError('⚠️ Username already taken. Please choose a different name.')
@@ -37,30 +37,70 @@ const LoginForm = ({ onLogin = () => { } }) => {
   }
 
   return (
-    <form className="login-form glass-card auth-card teal-glow" onSubmit={submit} style={{ padding: '1.5rem 2.25rem' }}>
-      <div className="login-header" style={{ flexDirection: 'column', gap: 16, alignItems: 'center', marginBottom: '1.25rem' }}>
-        <div style={{ background: '#000', padding: '1rem 2rem', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '240px', boxShadow: 'inset 0 0 15px rgba(0,0,0,0.8)' }}>
-          <img src="/logo.png" alt="Type Sprint Logo" style={{ width: '100%', height: 'auto', filter: 'drop-shadow(0 0 8px rgba(0,255,255,0.3))' }} />
+    <form onSubmit={submit} className="space-y-6">
+      {/* Logo Section */}
+      <div className="flex flex-col items-center gap-6 mb-8">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+          <div className="relative bg-black/90 p-6 rounded-2xl border border-cyan-500/30">
+            <img
+              src="/logo.png"
+              alt="Type Sprint Logo"
+              className="w-48 h-auto drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+            />
+          </div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div className="hero-sub" style={{ fontSize: '0.9rem', opacity: 0.85 }}>Fastest fingers win — join the sprint</div>
+        <div className="text-center">
+          <p className="text-gray-400 text-sm tracking-[0.2em] uppercase">Fastest fingers win — join the sprint</p>
         </div>
       </div>
 
-      {error && <div style={{ color: '#ff4444', marginBottom: 10, fontSize: 13, textAlign: 'center' }}>{error}</div>}
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm text-center">
+          {error}
+        </div>
+      )}
 
-      <div style={{ marginBottom: '1rem' }}>
-        <label className="label" style={{ fontSize: '0.9rem', marginBottom: '0.4rem' }}>Player name</label>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter a display name" required style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.75rem' }} />
+      {/* Form Fields */}
+      <div className="space-y-4">
+        <div>
+          <label className="block text-gray-400 text-sm font-medium mb-2 uppercase tracking-wider">
+            Player name
+          </label>
+          <input
+            className="w-full bg-black/60 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter a display name"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-400 text-sm font-medium mb-2 uppercase tracking-wider">
+            Password
+          </label>
+          <input
+            className="w-full bg-black/60 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Required to play"
+            required
+          />
+        </div>
       </div>
 
-      <div style={{ marginBottom: '1.5rem' }}>
-        <label className="label" style={{ fontSize: '0.9rem', marginBottom: '0.4rem' }}>Password</label>
-        <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Required to play" required style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.75rem' }} />
-      </div>
-
-      <div className="actions" style={{ justifyContent: 'center', marginTop: '0.25rem' }}>
-        <button className="btn primary large" type="submit" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Enter the Arena</button>
+      {/* Submit Button */}
+      <div className="pt-2">
+        <ShowcaseButton
+          type="submit"
+          variant="primary"
+          className="w-full py-4 text-lg font-bold"
+        >
+          Enter the Arena
+        </ShowcaseButton>
       </div>
     </form>
   )

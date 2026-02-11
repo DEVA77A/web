@@ -4,6 +4,8 @@ import GameBoard from '../components/GameBoard.clean.jsx'
 import MyProfileEditor from '../components/MyProfileEditor.jsx'
 import { saveScore, getUser, removeUser, updateProfile } from '../utils/storage.js'
 import { postScore, updateUserProfile } from '../services/api.js'
+import ShowcaseCard from '../components/ui/ShowcaseCard.jsx'
+import ShowcaseButton from '../components/ui/ShowcaseButton.jsx'
 
 const GamePage = () => {
   const navigate = useNavigate()
@@ -20,7 +22,7 @@ const GamePage = () => {
 
     saveScore(username, data.score, data.accuracy)
     updateProfile(username, { score: data.score, accuracy: data.accuracy })
-    
+
     // also send to server leaderboard and profile (fire-and-forget)
     try {
       postScore({
@@ -31,7 +33,7 @@ const GamePage = () => {
         userId: userId,
         round: data.round
       })
-      
+
       // Update backend profile
       if (userId) {
         updateUserProfile(userId, {
@@ -56,24 +58,46 @@ const GamePage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex justify-center items-start game-page-wrapper">
-      <div className="container game-container">
-        <div className="glass-card game-card-wrapper">
+    <div className="flex-1 flex flex-col justify-center items-center py-20 px-4">
+      <div className="w-full max-w-5xl">
+        <ShowcaseCard className="border-t-4 border-t-cyan-500/50">
           <GameBoard onGameOver={handleGameOver} onExit={() => navigate('/dashboard')} />
-        </div>
+        </ShowcaseCard>
+
         {gameOverData && (
-          <div className="overlay">
-            <div className="card modal">
-              <h3>Game Over</h3>
-              <p>Score: <strong>{gameOverData.score}</strong></p>
-              <p>Accuracy: <strong>{gameOverData.accuracy}%</strong></p>
-              <div className="mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <button className="btn primary" onClick={() => window.location.reload()}>Play Again</button>
-                <button className="btn" onClick={() => setShowMyProfile(true)}>Edit Profile</button>
-                <button className="btn" onClick={handleBack}>Back to Dashboard</button>
-                <Link to="/leaderboard" className="btn">Leaderboard</Link>
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <ShowcaseCard className="max-w-md w-full animate-[float_4s_ease-in-out_infinite]">
+              <div className="text-center">
+                <h3 className="text-3xl font-bold uppercase mb-2 text-white">Game Over</h3>
+                <div className="text-6xl font-mono font-bold text-cyan-400 mb-2 text-shadow-glow">
+                  {gameOverData.score}
+                </div>
+                <div className="text-sm text-gray-400 uppercase tracking-widest mb-8">Final Score</div>
+
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-white/5 p-3 rounded-lg">
+                    <div className="text-sm text-gray-500">Accuracy</div>
+                    <div className="text-xl font-bold text-white">{gameOverData.accuracy}%</div>
+                  </div>
+                  <div className="bg-white/5 p-3 rounded-lg">
+                    <div className="text-sm text-gray-500">Level</div>
+                    <div className="text-xl font-bold text-white">{gameOverData.level}</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <ShowcaseButton variant="primary" onClick={() => window.location.reload()}>
+                    Play Again
+                  </ShowcaseButton>
+                  <ShowcaseButton variant="secondary" onClick={() => setShowMyProfile(true)}>
+                    Edit Profile
+                  </ShowcaseButton>
+                  <ShowcaseButton variant="ghost" onClick={handleBack}>
+                    Back to Dashboard
+                  </ShowcaseButton>
+                </div>
               </div>
-            </div>
+            </ShowcaseCard>
           </div>
         )}
       </div>

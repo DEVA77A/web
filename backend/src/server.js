@@ -93,13 +93,19 @@ if (useDb) {
 				// Create new user
 				user = await User.create({ name, password })
 			}
-			
+
 			// Ensure UserProfile exists and is synced with User
-			await ensureUserProfile(user._id.toString(), name)
-			
+			try {
+				await ensureUserProfile(user._id.toString(), name)
+			} catch (profileErr) {
+				console.error('Profile sync error (non-fatal):', profileErr)
+				// Don't fail login if profile sync fails
+			}
+
 			res.json({ id: user._id, name: user.name })
 		} catch (err) {
 			console.error('Login error', err)
+			console.error('Error stack:', err.stack)
 			// Handle duplicate key error for username
 			if (err.code === 11000) {
 				return res.status(409).json({ error: 'Username already taken. Please choose a different name.' })
@@ -113,13 +119,13 @@ if (useDb) {
 		try {
 			// First check by userId
 			let profile = await UserProfile.findOne({ userId })
-			
+
 			if (!profile) {
 				// Check if there's a profile with this username but different/no userId
-				const profileByName = await UserProfile.findOne({ 
+				const profileByName = await UserProfile.findOne({
 					username: { $regex: new RegExp(`^${username}$`, 'i') }
 				})
-				
+
 				if (profileByName) {
 					// Update existing profile with the correct userId
 					profileByName.userId = userId
@@ -149,10 +155,10 @@ if (useDb) {
 					await profile.save()
 				}
 			}
-			
+
 			// Update login streak
 			await updateLoginStreak(profile)
-			
+
 			return profile
 		} catch (err) {
 			console.error('ensureUserProfile error:', err)
@@ -164,34 +170,34 @@ if (useDb) {
 	async function updateLoginStreak(profile) {
 		try {
 			if (!profile) return
-			
+
 			const today = new Date()
 			today.setHours(0, 0, 0, 0)
-			
+
 			const lastLogin = profile.lastLogin ? new Date(profile.lastLogin) : null
 			if (lastLogin) {
 				lastLogin.setHours(0, 0, 0, 0)
 			}
-			
+
 			const todayTime = today.getTime()
 			const lastLoginTime = lastLogin ? lastLogin.getTime() : 0
-			
+
 			// Check if already logged in today
 			if (lastLoginTime === todayTime) {
 				return profile
 			}
-			
+
 			const yesterday = new Date(today)
 			yesterday.setDate(yesterday.getDate() - 1)
 			const yesterdayTime = yesterday.getTime()
-			
+
 			if (lastLoginTime === yesterdayTime) {
 				profile.loginStreak += 1
 			} else if (lastLoginTime > 0) {
 				// Streak broken, reset to 1
 				profile.loginStreak = 1
 			}
-			
+
 			profile.lastLogin = new Date()
 			await profile.save()
 			return profile
@@ -205,28 +211,28 @@ if (useDb) {
 		try {
 			const { username } = req.params
 			if (!username) return res.status(400).json({ error: 'username is required' })
-			
+
 			// Get all scores for this player by name (case-insensitive)
-			const scores = await ScoreModel.find({ 
+			const scores = await ScoreModel.find({
 				name: { $regex: new RegExp(`^${username}$`, 'i') }
 			}).sort({ score: -1 }).lean()
-			
+
 			// Calculate stats from scores
 			const gamesPlayed = scores.length
 			const highestScore = gamesPlayed > 0 ? Math.max(...scores.map(s => s.score || 0)) : 0
 			const totalAccuracy = scores.reduce((sum, s) => sum + (s.accuracy || 0), 0)
 			const avgAccuracy = gamesPlayed > 0 ? Math.round(totalAccuracy / gamesPlayed) : 0
-			
+
 			// Try to get profile data for bio and login streak
-			let profile = await UserProfile.findOne({ 
+			let profile = await UserProfile.findOne({
 				username: { $regex: new RegExp(`^${username}$`, 'i') }
 			})
-			
+
 			if (!profile) {
 				// Try by userId
 				profile = await UserProfile.findOne({ userId: username })
 			}
-			
+
 			res.json({
 				userId: profile?.userId || username,
 				username: profile?.username || username,
@@ -251,11 +257,11 @@ if (useDb) {
 		try {
 			const { username } = req.params
 			if (!username) return res.status(400).json({ error: 'username is required', available: false })
-			
-			const existingProfile = await UserProfile.findOne({ 
+
+			const existingProfile = await UserProfile.findOne({
 				username: { $regex: new RegExp(`^${username}$`, 'i') }
 			})
-			
+
 			res.json({ available: !existingProfile, username })
 		} catch (err) {
 			console.error('checkUsernameAvailable error:', err)
@@ -268,11 +274,11 @@ if (useDb) {
 		try {
 			const { userId } = req.params
 			const { bio } = req.body || {}
-			
+
 			if (!userId) return res.status(400).json({ error: 'userId is required' })
-			
+
 			let profile = await UserProfile.findOne({ userId })
-			
+
 			if (!profile) {
 				profile = await UserProfile.create({
 					userId,
@@ -289,7 +295,7 @@ if (useDb) {
 				profile.bio = bio || ''
 				await profile.save()
 			}
-			
+
 			res.json(profile)
 		} catch (err) {
 			console.error('updateUserBio error:', err)
@@ -302,9 +308,9 @@ if (useDb) {
 		try {
 			const { userId } = req.params
 			if (!userId) return res.status(400).json({ error: 'userId is required' })
-			
+
 			let profile = await UserProfile.findOne({ userId })
-			
+
 			if (!profile) {
 				profile = await UserProfile.create({
 					userId,
@@ -317,7 +323,7 @@ if (useDb) {
 					firstLogin: new Date()
 				})
 			}
-			
+
 			res.json(profile)
 		} catch (err) {
 			console.error('getUserProfile error:', err)
@@ -330,23 +336,23 @@ if (useDb) {
 		try {
 			const { userId } = req.params
 			const { score, accuracy, username, newUsername } = req.body || {}
-			
+
 			if (!userId) return res.status(400).json({ error: 'userId is required' })
-			
+
 			// If changing username, check if new username is available
 			if (newUsername) {
-				const existingProfile = await UserProfile.findOne({ 
+				const existingProfile = await UserProfile.findOne({
 					username: { $regex: new RegExp(`^${newUsername}$`, 'i') },
 					userId: { $ne: userId }
 				})
-				
+
 				if (existingProfile) {
 					return res.status(400).json({ error: 'Username already taken' })
 				}
 			}
-			
+
 			let profile = await UserProfile.findOne({ userId })
-			
+
 			if (!profile) {
 				profile = await UserProfile.create({
 					userId,
@@ -365,20 +371,20 @@ if (useDb) {
 				if (newUsername) {
 					profile.username = newUsername
 				}
-				
+
 				if (score && score > profile.highestScore) {
 					profile.highestScore = score
 				}
-				
+
 				if (accuracy !== undefined) {
 					profile.totalAccuracy += accuracy
 					profile.gamesPlayed += 1
 					profile.totalGames += 1
 				}
-				
+
 				await profile.save()
 			}
-			
+
 			res.json(profile)
 		} catch (err) {
 			console.error('updateUserProfile error:', err)
@@ -393,22 +399,22 @@ const syncProfilesHandler = async (req, res) => {
 	if (!ScoreModel || !UserProfile || !User) {
 		return res.json({ message: 'Database not available' })
 	}
-	
+
 	try {
 		// First sync all Users to UserProfiles
 		const users = await User.find().lean()
 		let usersSynced = 0
-		
+
 		for (const user of users) {
 			const userId = user._id.toString()
 			let profile = await UserProfile.findOne({ userId })
-			
+
 			if (!profile) {
 				// Also check by username
-				profile = await UserProfile.findOne({ 
+				profile = await UserProfile.findOne({
 					username: { $regex: new RegExp(`^${user.name}$`, 'i') }
 				})
-				
+
 				if (profile) {
 					// Link existing profile to this user
 					profile.userId = userId
@@ -434,11 +440,11 @@ const syncProfilesHandler = async (req, res) => {
 				}
 			}
 		}
-		
+
 		// Now sync scores to update highestScore and games count
 		const scores = await ScoreModel.find().lean()
 		let scoresSynced = 0
-		
+
 		// Group scores by userId/name
 		const userScores = {}
 		for (const score of scores) {
@@ -458,12 +464,12 @@ const syncProfilesHandler = async (req, res) => {
 			userScores[key].totalAccuracy += score.accuracy || 0
 			userScores[key].gamesPlayed += 1
 		}
-		
+
 		// Update profiles with score data
 		for (const [key, data] of Object.entries(userScores)) {
 			let profile = await UserProfile.findOne({ userId: data.userId }) ||
-			              await UserProfile.findOne({ username: { $regex: new RegExp(`^${data.name}$`, 'i') } })
-			
+				await UserProfile.findOne({ username: { $regex: new RegExp(`^${data.name}$`, 'i') } })
+
 			if (profile) {
 				let updated = false
 				if (data.highestScore > profile.highestScore) {
@@ -497,9 +503,9 @@ const syncProfilesHandler = async (req, res) => {
 				scoresSynced++
 			}
 		}
-		
-		res.json({ 
-			message: `Synced ${usersSynced} users and ${scoresSynced} scores`, 
+
+		res.json({
+			message: `Synced ${usersSynced} users and ${scoresSynced} scores`,
 			totalUsers: users.length,
 			totalScores: scores.length
 		})
@@ -517,11 +523,11 @@ app.get('/api/admin/users-profiles', async (req, res) => {
 	if (!User || !UserProfile) {
 		return res.json({ message: 'Database not available' })
 	}
-	
+
 	try {
 		const users = await User.find().lean()
 		const profiles = await UserProfile.find().lean()
-		
+
 		// Map profiles by userId for easy lookup
 		const profilesByUserId = {}
 		const profilesByUsername = {}
@@ -529,7 +535,7 @@ app.get('/api/admin/users-profiles', async (req, res) => {
 			if (p.userId) profilesByUserId[p.userId] = p
 			if (p.username) profilesByUsername[p.username.toLowerCase()] = p
 		}
-		
+
 		// Build merged view
 		const merged = users.map(user => {
 			const userId = user._id.toString()
@@ -549,7 +555,7 @@ app.get('/api/admin/users-profiles', async (req, res) => {
 				linkedCorrectly: profile?.userId === userId
 			}
 		})
-		
+
 		res.json({
 			totalUsers: users.length,
 			totalProfiles: profiles.length,
@@ -592,7 +598,7 @@ app.get('/api/scores/top', async (req, res) => {
 						.sort({ highestScore: -1 })
 						.limit(limit)
 						.lean()
-					
+
 					// Map to score format
 					const results = profiles.map(p => ({
 						_id: p._id,
@@ -603,7 +609,7 @@ app.get('/api/scores/top', async (req, res) => {
 						level: 1,
 						createdAt: p.createdAt
 					}))
-					
+
 					if (results.length > 0) {
 						console.log(`Returning ${results.length} profiles from leaderboard`)
 						return res.json(results)
@@ -612,7 +618,7 @@ app.get('/api/scores/top', async (req, res) => {
 					console.error('Error fetching from UserProfile:', profileErr)
 				}
 			}
-			
+
 			// Fallback to scores collection
 			const results = await ScoreModel.aggregate([
 				// 1. Sort by score descending and then by creation date
@@ -675,12 +681,12 @@ app.post('/api/scores', async (req, res) => {
 				}
 			}
 			const doc = await ScoreModel.create(data)
-			
+
 			// Update user profile if userId is provided
 			if (userId && UserProfile) {
 				try {
 					let profile = await UserProfile.findOne({ userId })
-					
+
 					if (!profile) {
 						console.log(`Creating new profile for ${name} (${userId})`)
 						profile = await UserProfile.create({
@@ -709,7 +715,7 @@ app.post('/api/scores', async (req, res) => {
 					console.error('Error updating profile:', profileError)
 				}
 			}
-			
+
 			return res.status(201).json(doc)
 		}
 		// Memory fallback
