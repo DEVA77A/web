@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { getUser, getBadge, setUser } from '../utils/storage.js'
 import { getPlayerStats, updateUserProfile, checkUsernameAvailable, updateUserBio } from '../services/api.js'
+import ShowcaseCard from './ui/ShowcaseCard.jsx'
+import ShowcaseButton from './ui/ShowcaseButton.jsx'
 
 const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
   const user = getUser()
   const userId = user?.id || user?.name
-  
+
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editingName, setEditingName] = useState(false)
@@ -19,7 +21,6 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
     const loadProfile = async () => {
       setLoading(true)
       try {
-        // Fetch player stats from server (aggregates from Score collection)
         const username = user?.name || userId
         const serverStats = await getPlayerStats(username)
         if (serverStats) {
@@ -37,7 +38,6 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
           setBio(serverStats.bio || '')
           setNewName(serverStats.username || username)
         } else {
-          // Show empty profile if fetch fails
           setProfile({
             userId: userId,
             username: username,
@@ -77,9 +77,8 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
   }, [userId, user?.name])
 
   const badge = profile ? getBadge(profile.loginStreak) : null
-  // Use pre-calculated avgAccuracy from server, or calculate if not available
-  const avgAccuracy = profile?.avgAccuracy || (profile && profile.gamesPlayed > 0 
-    ? Math.round(profile.totalAccuracy / profile.gamesPlayed) 
+  const avgAccuracy = profile?.avgAccuracy || (profile && profile.gamesPlayed > 0
+    ? Math.round(profile.totalAccuracy / profile.gamesPlayed)
     : 0)
 
   const handleNameChange = async () => {
@@ -99,33 +98,30 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
     setNameError('')
 
     try {
-      // Check if username is available
       const isAvailable = await checkUsernameAvailable(trimmedName)
-      
+
       if (!isAvailable) {
         setNameError('This name is already taken. Choose another!')
         setSaving(false)
         return
       }
 
-      // Update the profile with new username
-      const result = await updateUserProfile(userId, { 
+      const result = await updateUserProfile(userId, {
         username: trimmedName,
         newUsername: trimmedName
       })
-      
+
       if (result) {
-        // Update local storage
         const currentUser = getUser()
         if (currentUser) {
           setUser({ ...currentUser, name: trimmedName })
         }
-        
+
         setProfile(prev => ({ ...prev, username: trimmedName }))
         setEditingName(false)
         setSaveMessage('Name updated successfully!')
         setTimeout(() => setSaveMessage(''), 3000)
-        
+
         if (onProfileUpdate) {
           onProfileUpdate({ username: trimmedName })
         }
@@ -148,7 +144,7 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
         setProfile(prev => ({ ...prev, bio }))
         setSaveMessage('Bio saved!')
         setTimeout(() => setSaveMessage(''), 3000)
-        
+
         if (onProfileUpdate) {
           onProfileUpdate({ bio })
         }
@@ -169,32 +165,28 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
   if (!userId) return null
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/80 backdrop-blur-md z-[10001] flex items-center justify-center p-4"
+    <div
+      className="fixed inset-0 bg-black/90 backdrop-blur-md z-[10001] flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
-        className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto"
+      <div
+        className="w-full max-w-2xl animate-scale-in"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          animation: 'modalSlideIn 0.3s ease-out',
-          background: 'rgba(15, 23, 42, 0.95)',
-          border: '1px solid rgba(96, 165, 250, 0.3)',
-          boxShadow: '0 0 40px rgba(96, 165, 250, 0.2)'
-        }}
       >
         {loading ? (
-          <div className="p-8 text-center">
-            <div className="loading-spinner mx-auto mb-4"></div>
-            <p className="text-slate-400">Loading profile...</p>
-          </div>
+          <ShowcaseCard>
+            <div className="p-12 text-center">
+              <div className="loader-spinner mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading profile...</p>
+            </div>
+          </ShowcaseCard>
         ) : profile ? (
-          <div className="p-6">
-            {/* Header with Edit */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <div style={{ flex: 1 }}>
+          <ShowcaseCard className="border-t-4 border-t-cyan-500/50">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-8 pb-6 border-b border-white/5">
+              <div className="flex-1 mr-4">
                 {editingName ? (
-                  <div>
+                  <div className="animate-fade-in">
                     <input
                       type="text"
                       value={newName}
@@ -202,86 +194,59 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
                         setNewName(e.target.value)
                         setNameError('')
                       }}
-                      className="px-3 py-2 rounded bg-slate-800 border border-blue-500/50 text-white text-lg font-bold w-full"
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-cyan-500/50 text-white text-xl font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500/50 mb-2"
                       placeholder="Enter new name"
                       autoFocus
                       maxLength={20}
                     />
                     {nameError && (
-                      <div style={{ 
-                        color: '#ef4444', 
-                        fontSize: '0.85rem', 
-                        marginTop: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
+                      <div className="text-red-400 text-sm mb-2 flex items-center gap-1">
                         ⚠️ {nameError}
                       </div>
                     )}
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                      <button 
-                        className="btn primary"
+                    <div className="flex gap-2">
+                      <ShowcaseButton
+                        variant="primary"
                         onClick={handleNameChange}
                         disabled={saving}
-                        style={{ fontSize: '0.85rem', padding: '6px 12px' }}
+                        className="py-1 px-4 text-xs min-w-[80px] h-8"
                       >
-                        {saving ? 'Saving...' : '✓ Save'}
-                      </button>
-                      <button 
-                        className="btn"
+                        {saving ? '...' : '✓ Save'}
+                      </ShowcaseButton>
+                      <ShowcaseButton
+                        variant="ghost"
                         onClick={handleCancelEdit}
-                        style={{ fontSize: '0.85rem', padding: '6px 12px' }}
+                        className="py-1 px-4 text-xs min-w-[80px] h-8"
                       >
                         ✗ Cancel
-                      </button>
+                      </ShowcaseButton>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <h3 className="neon-text" style={{ fontSize: '1.75rem', margin: 0 }}>
-                      {profile.username || userId}
-                    </h3>
-                    <button 
-                      onClick={() => setEditingName(true)}
-                      className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50 transition-colors"
-                      title="Edit name"
-                      style={{ border: '1px solid rgba(96, 165, 250, 0.3)' }}
-                    >
-                      ✏️
-                    </button>
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h2 className="text-4xl font-bold uppercase tracking-wider">
+                        <span className="showcase-text-gradient">{profile.username || userId}</span>
+                      </h2>
+                      <button
+                        onClick={() => setEditingName(true)}
+                        className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-cyan-400 transition-all border border-transparent hover:border-cyan-500/30"
+                        title="Edit name"
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                    <p className="text-gray-500 text-sm uppercase tracking-widest">My Profile</p>
                   </div>
                 )}
-                <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>
-                  My Profile
-                </div>
               </div>
+
               {badge && (
-                <div 
-                  className="player-badge-large" 
-                  style={{ 
-                    textAlign: 'center',
-                    padding: '12px 16px',
-                    background: `linear-gradient(135deg, ${badge.color}20, ${badge.color}10)`,
-                    borderRadius: '12px',
-                    border: `2px solid ${badge.color}40`,
-                    minWidth: '90px'
-                  }}
-                >
-                  <div style={{ 
-                    fontSize: '2rem', 
-                    marginBottom: '4px',
-                    filter: `drop-shadow(0 0 12px ${badge.color})`,
-                    animation: 'badge-float 3s ease-in-out infinite'
-                  }}>
+                <div className="text-center px-6 py-4 bg-white/5 rounded-2xl border border-white/10">
+                  <div className="text-5xl mb-2 animate-pulse">
                     {badge.emoji}
                   </div>
-                  <div style={{ 
-                    fontSize: '0.7rem', 
-                    fontWeight: 'bold',
-                    color: badge.color,
-                    textTransform: 'uppercase'
-                  }}>
+                  <div className="text-xs font-bold uppercase tracking-wider" style={{ color: badge.color }}>
                     {badge.name}
                   </div>
                 </div>
@@ -290,190 +255,104 @@ const MyProfileEditor = ({ onClose, onBackToDashboard, onProfileUpdate }) => {
 
             {/* Success Message */}
             {saveMessage && (
-              <div style={{
-                background: 'rgba(34, 197, 94, 0.2)',
-                border: '1px solid rgba(34, 197, 94, 0.4)',
-                borderRadius: '8px',
-                padding: '10px 16px',
-                marginBottom: '1rem',
-                color: '#22c55e',
-                fontSize: '0.9rem',
-                textAlign: 'center'
-              }}>
+              <div className="mb-6 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-center text-sm font-bold tracking-wide animate-fade-in">
                 ✓ {saveMessage}
               </div>
             )}
 
-            {/* Bio Section - Always Editable */}
-            <div style={{
-              marginBottom: '1.5rem'
-            }}>
-              <label style={{ 
-                fontSize: '0.85rem', 
-                color: '#94a3b8', 
-                display: 'block', 
-                marginBottom: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>
-                📝 Bio
-              </label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell others about yourself..."
-                className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-600/50 text-white resize-none focus:border-blue-500/50 focus:outline-none transition-colors"
-                style={{ minHeight: '100px' }}
-                maxLength={200}
-              />
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                marginTop: '8px'
-              }}>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                  {bio.length}/200 characters
-                </span>
-                <button 
-                  className="btn primary"
-                  onClick={handleBioSave}
-                  disabled={saving}
-                  style={{ fontSize: '0.85rem', padding: '6px 16px' }}
-                >
-                  {saving ? 'Saving...' : 'Save Bio'}
-                </button>
+            {/* Bio Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">📝</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest">BIO</span>
+                </div>
+              </div>
+
+              <div className="relative group p-3 bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-r-lg hover:bg-cyan-500/10 transition-colors">
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell others about yourself..."
+                  className="w-full bg-transparent text-gray-300 leading-relaxed border-none focus:ring-0 resize-none p-0 text-sm placeholder-gray-600 focus:outline-none"
+                  style={{ minHeight: '60px' }}
+                  maxLength={200}
+                />
+                <div className="flex justify-between items-center mt-2 pt-2 border-t border-cyan-500/20">
+                  <span className="text-xs text-gray-600">
+                    {bio.length}/200 characters
+                  </span>
+                  <button
+                    onClick={handleBioSave}
+                    disabled={saving}
+                    className="text-xs font-bold uppercase tracking-wider text-cyan-400 hover:text-cyan-300 transition-colors"
+                  >
+                    {saving ? 'Saving...' : 'Save Bio'}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Stats Grid */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(2, 1fr)', 
-              gap: '12px',
-              marginBottom: '1.5rem'
-            }}>
-              <div style={{
-                background: 'rgba(96, 165, 250, 0.1)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(96, 165, 250, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#60a5fa',
-                  textShadow: '0 0 10px #60a5fa'
-                }}>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 border border-cyan-500/20 rounded-2xl text-center group hover:border-cyan-500/40 transition-all">
+                <div className="text-4xl font-bold text-cyan-400 mb-2 group-hover:scale-110 transition-transform">
                   {profile.highestScore}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Highest Score
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(34, 197, 94, 0.1)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(34, 197, 94, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#22c55e',
-                  textShadow: '0 0 10px #22c55e'
-                }}>
+              <div className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/20 rounded-2xl text-center group hover:border-green-500/40 transition-all">
+                <div className="text-4xl font-bold text-green-400 mb-2 group-hover:scale-110 transition-transform">
                   {avgAccuracy}%
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Avg Accuracy
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(168, 85, 247, 0.1)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(168, 85, 247, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#a855f7',
-                  textShadow: '0 0 10px #a855f7'
-                }}>
+              <div className="p-6 bg-gradient-to-br from-purple-500/10 to-violet-600/10 border border-purple-500/20 rounded-2xl text-center group hover:border-purple-500/40 transition-all">
+                <div className="text-4xl font-bold text-purple-400 mb-2 group-hover:scale-110 transition-transform">
                   {profile.totalGames}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Games Played
                 </div>
               </div>
 
-              <div style={{
-                background: 'rgba(251, 191, 36, 0.1)',
-                padding: '14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(251, 191, 36, 0.2)',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold', 
-                  color: '#fbbf24',
-                  textShadow: '0 0 10px #fbbf24'
-                }}>
+              <div className="p-6 bg-gradient-to-br from-yellow-500/10 to-orange-600/10 border border-yellow-500/20 rounded-2xl text-center group hover:border-yellow-500/40 transition-all">
+                <div className="text-4xl font-bold text-yellow-400 mb-2 group-hover:scale-110 transition-transform">
                   {profile.loginStreak}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <div className="text-xs text-gray-400 uppercase tracking-widest">
                   Login Streak
                 </div>
               </div>
             </div>
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button 
-                className="btn"
-                onClick={onClose}
-                style={{ minWidth: '100px' }}
-              >
+            <div className="flex gap-4 justify-center pt-6 border-t border-white/5">
+              <ShowcaseButton onClick={onClose} variant="ghost">
                 Close
-              </button>
+              </ShowcaseButton>
               {onBackToDashboard && (
-                <button 
-                  className="btn primary"
-                  onClick={onBackToDashboard}
-                  style={{ minWidth: '140px' }}
-                >
+                <ShowcaseButton onClick={onBackToDashboard} variant="primary">
                   🏠 Dashboard
-                </button>
+                </ShowcaseButton>
               )}
             </div>
-          </div>
+          </ShowcaseCard>
         ) : (
-          <div className="p-8 text-center">
-            <p className="text-slate-400">Could not load profile</p>
-            <button className="btn mt-4" onClick={onClose}>Close</button>
-          </div>
+          <ShowcaseCard>
+            <div className="p-8 text-center">
+              <p className="text-gray-400 mb-4">Could not load profile</p>
+              <ShowcaseButton onClick={onClose} variant="ghost">Close</ShowcaseButton>
+            </div>
+          </ShowcaseCard>
         )}
       </div>
-
-      <style>{`
-        @keyframes modalSlideIn {
-          from {
-            opacity: 0;
-            transform: scale(0.9) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-      `}</style>
     </div>
   )
 }
