@@ -61,9 +61,9 @@ if (useDb) {
 
 	const UserProfileSchema = new mongoose.Schema({
 		userId: { type: String, required: true, unique: true, index: true },
-		username: { type: String, required: true },
+		username: { type: String, required: true, index: true },
 		bio: { type: String, default: '', maxlength: 200 },
-		highestScore: { type: Number, default: 0 },
+		highestScore: { type: Number, default: 0, index: -1 }, // Index for leaderboard sort
 		totalGames: { type: Number, default: 0 },
 		totalAccuracy: { type: Number, default: 0 },
 		gamesPlayed: { type: Number, default: 0 },
@@ -94,13 +94,10 @@ if (useDb) {
 				user = await User.create({ name, password })
 			}
 
-			// Ensure UserProfile exists and is synced with User
-			try {
-				await ensureUserProfile(user._id.toString(), name)
-			} catch (profileErr) {
-				console.error('Profile sync error (non-fatal):', profileErr)
-				// Don't fail login if profile sync fails
-			}
+			// Ensure UserProfile exists and is synced with User (non-blocking)
+			ensureUserProfile(user._id.toString(), name).catch(profileErr => {
+				console.error('Profile sync error (background):', profileErr)
+			})
 
 			res.json({ id: user._id, name: user.name })
 		} catch (err) {
